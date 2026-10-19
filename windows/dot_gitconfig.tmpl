@@ -5,3 +5,10 @@
 	defaultBranch = main
 [core]
 	autocrlf = input
+# Authenticate via GitHub CLI (`gh auth login`)
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !gh auth git-credential

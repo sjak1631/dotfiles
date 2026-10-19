@@ -2,7 +2,9 @@ $ErrorActionPreference = 'Stop'
 
 # Allow local scripts (PowerShell profile etc.)
 if ((Get-ExecutionPolicy -Scope CurrentUser) -notin 'RemoteSigned', 'Unrestricted', 'Bypass') {
-    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+    # Throws "overridden by a more specific scope" because chezmoi runs us with -ExecutionPolicy Bypass;
+    # the CurrentUser policy is still written, so ignore it.
+    try { Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force } catch [System.Security.SecurityException] {}
 }
 
 # Enable `winget configure` (admin setting, needs elevation)
