@@ -71,20 +71,28 @@ properties:
         id: Vencord.Vesktop
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: steam
-      directives:
-        description: Steam
-        allowPrerelease: true
-      settings:
-        id: Valve.Steam
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: spotify
       directives:
         description: Spotify
         allowPrerelease: true
       settings:
         id: Spotify.Spotify
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: spicetify
+      directives:
+        description: Spicetify (Spotify theming, see run_after_77-spicetify.ps1)
+        allowPrerelease: true
+      settings:
+        id: Spicetify.Spicetify
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: zoom
+      directives:
+        description: Zoom
+        allowPrerelease: true
+      settings:
+        id: Zoom.Zoom
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vscode
@@ -97,7 +105,7 @@ properties:
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: kanata
       directives:
-        description: kanata (key remapper)
+        description: kanata (key remapper; the Interception build, see run_after_19-interception.ps1)
         allowPrerelease: true
       settings:
         id: jtroo.kanata_gui
@@ -123,7 +131,7 @@ properties:
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: flowlauncher
       directives:
-        description: Flow Launcher (opened by a Win key tap, see kanata.kbd)
+        description: Flow Launcher (Alt+Space)
         allowPrerelease: true
       settings:
         id: Flow-Launcher.Flow-Launcher

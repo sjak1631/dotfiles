@@ -11,3 +11,20 @@ properties:
       settings:
         id: mgth.LittleBigMouse
         source: winget
+    # --- Games (desktop only) ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: steam
+      directives:
+        description: Steam
+        allowPrerelease: true
+      settings:
+        id: Valve.Steam
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: epicgames
+      directives:
+        description: Epic Games Launcher
+        allowPrerelease: true
+      settings:
+        id: EpicGames.EpicGamesLauncher
+        source: winget

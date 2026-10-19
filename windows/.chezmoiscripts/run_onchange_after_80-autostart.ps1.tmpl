@@ -39,7 +39,8 @@ function Register-LogonTask([string]$name, [string]$exe, [string]$arguments, [st
 # kanata: the package folder name is fixed, so the path is stable across updates
 $kanataDir = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages') -Directory -Filter 'jtroo.kanata_gui_*' -ErrorAction SilentlyContinue |
     Select-Object -First 1
-$kanataExe = if ($kanataDir) { Join-Path $kanataDir.FullName 'kanata_windows_gui_winIOv2_x64.exe' } else { '' }
+# Interception build (run_after_19-interception.ps1)
+$kanataExe = if ($kanataDir) { Join-Path $kanataDir.FullName 'kanata_windows_gui_wintercept_x64.exe' } else { '' }
 Register-LogonTask 'dotfiles-kanata' $kanataExe "--cfg `"$(Join-Path $env:APPDATA 'kanata\kanata.kbd')`"" 'Keyboard remapping'
 
 # GlazeWM goes through glazewm-start.cmd, which retries if it crashes right after logon

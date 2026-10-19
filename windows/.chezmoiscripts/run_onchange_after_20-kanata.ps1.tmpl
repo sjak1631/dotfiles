@@ -3,7 +3,9 @@ $ErrorActionPreference = 'Stop'
 # Re-runs (and restarts kanata) when the config changes:
 # kanata.kbd: {{ include "AppData/Roaming/kanata/kanata.kbd" | sha256sum }}
 
-$exeName = 'kanata_windows_gui_winIOv2_x64'
+# The Interception build (run_after_19-interception.ps1): the default hook-based build sometimes
+# lost key releases, leaving Ctrl stuck down
+$exeName = 'kanata_windows_gui_wintercept_x64'
 $pkgDir = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages') -Directory -Filter 'jtroo.kanata_gui_*' |
     Select-Object -First 1
 if (-not $pkgDir) {
@@ -21,8 +23,15 @@ if ($LASTEXITCODE -ne 0) { throw "kanata config check failed: $cfg" }
 # used a Startup shortcut
 Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) 'kanata.lnk') -ErrorAction SilentlyContinue
 
-# Restart now to pick up the new config
-Get-Process $exeName -ErrorAction SilentlyContinue | Stop-Process -Force
+# Restart now to pick up the new config (and stop the old hook-based build if it still runs)
+Get-Process 'kanata_windows_*' -ErrorAction SilentlyContinue | Stop-Process -Force
+
+# The driver only works after the reboot that follows its install; until then kanata can't start
+# (the logon task starts it after that reboot)
+if ((Get-CimInstance Win32_SystemDriver -Filter "Name='keyboard'" -ErrorAction SilentlyContinue).State -ne 'Running') {
+    Write-Host '==> kanata not started: the Interception driver is not active yet (reboot)'
+    exit 0
+}
 
 # CapsLock can't be turned off by the user once kanata owns the key, so make sure it starts off
 if ([Console]::CapsLock) {

@@ -1,0 +1,58 @@
+{{- $color := index .cursors .rice.theme -}}
+$ErrorActionPreference = 'Stop'
+
+# Mouse cursor: Bibata Modern (https://github.com/ful1e5/Bibata_Cursor), color per rice theme
+# (rice.yaml: cursors, rice.cursor_size). Per user, no admin: the files go to
+# %LOCALAPPDATA%\Cursors and the scheme to HKCU (what the package's install.inf does, minus the
+# copy to C:\Windows\Cursors). Re-runs when the theme or size changes.
+# theme: {{ .rice.theme }} -> {{ $color }}, size: {{ .rice.cursor_size }}
+
+$version = 'v2.0.7'
+$color = '{{ $color }}'
+$size = '{{ .rice.cursor_size }}'
+$sha256 = @{
+    Amber   = '5151E0F8648D00FB734FEA501DEF12B5CC1FBC65BA12A6E28DB2E1295EBF8961'
+    Classic = 'B98ECA4077D6E7796FF7E710E4D220CA13439F1118160D1E7B3DB9E91FDEC2BE'
+    Ice     = '0045E40324DA5B540B3BEE260F53D0792DF62BE9CDEF91655A024AE9F151BD04'
+}
+
+$name = "Bibata-Modern-$color-$size"
+$dest = Join-Path $env:LOCALAPPDATA "Cursors\$name"
+
+if (-not (Test-Path (Join-Path $dest 'Pointer.cur'))) {
+    $tmp = Join-Path $env:TEMP "bibata-$PID"
+    New-Item -ItemType Directory -Force $tmp | Out-Null
+    try {
+        $zip = Join-Path $tmp 'cursor.zip'
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest "https://github.com/ful1e5/Bibata_Cursor/releases/download/$version/Bibata-Modern-$color-Windows.zip" -OutFile $zip -UseBasicParsing
+        if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $sha256[$color]) { throw "Bibata-Modern-${color}: unexpected SHA256" }
+        Expand-Archive $zip (Join-Path $tmp 'x') -Force
+        New-Item -ItemType Directory -Force $dest | Out-Null
+        Copy-Item (Join-Path $tmp "x\$name-Windows\*") $dest -Include *.cur, *.ani
+    } finally {
+        Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Registry value -> file, as in the package's install.inf (the scheme string lists them in the
+# order of the "Mouse pointers" dialog)
+$roles = [ordered]@{
+    Arrow = 'Pointer.cur'; Help = 'Help.cur'; AppStarting = 'Work.ani'; Wait = 'Busy.ani'
+    Crosshair = 'Cross.cur'; IBeam = 'Text.cur'; NWPen = 'Handwriting.cur'; No = 'Unavailable.cur'
+    SizeNS = 'Vert.cur'; SizeWE = 'Horz.cur'; SizeNWSE = 'Dgn1.cur'; SizeNESW = 'Dgn2.cur'
+    SizeAll = 'Move.cur'; UpArrow = 'Alternate.cur'; Hand = 'Link.cur'; Pin = 'Pin.cur'; Person = 'Person.cur'
+}
+$key = 'HKCU:\Control Panel\Cursors'
+foreach ($role in $roles.Keys) {
+    Set-ItemProperty $key -Name $role -Value (Join-Path $dest $roles[$role]) -Type ExpandString
+}
+Set-ItemProperty $key -Name 'precisionhair' -Value (Join-Path $dest 'Cross.cur') -Type ExpandString
+Set-ItemProperty $key -Name '(default)' -Value $name
+if (-not (Test-Path "$key\Schemes")) { New-Item "$key\Schemes" -Force | Out-Null }
+Set-ItemProperty "$key\Schemes" -Name $name -Value (($roles.Values | ForEach-Object { Join-Path $dest $_ }) -join ',') -Type ExpandString
+
+# Apply now (what the Mouse control panel does)
+Add-Type -Namespace Win32 -Name Cursor -MemberDefinition '[DllImport("user32.dll")] public static extern bool SystemParametersInfo(uint action, uint param, System.IntPtr pv, uint winIni);'
+[Win32.Cursor]::SystemParametersInfo(0x0057 <# SPI_SETCURSORS #>, 0, [IntPtr]::Zero, 0x01 -bor 0x02) | Out-Null
+Write-Host "==> cursor: $name"

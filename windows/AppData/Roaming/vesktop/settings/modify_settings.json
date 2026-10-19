@@ -1,0 +1,17 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  Vencord's settings inside Vesktop. Vencord rewrites this file itself, so only the keys below are
+  managed: the rice theme (themes/rice.theme.css, generated from rice.yaml) is the only theme.
+*/ -}}
+{{- $managed := dict
+      "enabledThemes" (list "rice.theme.css")
+-}}
+{{- $current := dict -}}
+{{- if .chezmoi.stdin }}{{ $current = .chezmoi.stdin | fromJson }}{{ end -}}
+{{- $changed := false -}}
+{{- range $k, $v := $managed }}{{ if ne (toJson (get $current $k)) (toJson $v) }}{{ $changed = true }}{{ end }}{{ end -}}
+{{- if $changed -}}
+{{ mergeOverwrite $current $managed | toPrettyJson }}
+{{- else -}}
+{{ .chezmoi.stdin }}
+{{- end -}}

@@ -71,6 +71,33 @@ window_behavior:
       shown_on_top: false
 
 workspaces:
+{{- if eq .machine "desktop" }}
+  # Main monitor: 1-9, side monitor: 0. GlazeWM numbers monitors from the left: the portrait
+  # side monitor (left) is 0, the main one 1. keep_alive: each monitor always shows its own
+  # workspace, even when empty
+  - name: '1'
+    bind_to_monitor: 1
+    keep_alive: true
+  - name: '2'
+    bind_to_monitor: 1
+  - name: '3'
+    bind_to_monitor: 1
+  - name: '4'
+    bind_to_monitor: 1
+  - name: '5'
+    bind_to_monitor: 1
+  - name: '6'
+    bind_to_monitor: 1
+  - name: '7'
+    bind_to_monitor: 1
+  - name: '8'
+    bind_to_monitor: 1
+  - name: '9'
+    bind_to_monitor: 1
+  - name: '0'
+    bind_to_monitor: 0
+    keep_alive: true
+{{- else }}
   - name: '1'
   - name: '2'
   - name: '3'
@@ -80,6 +107,8 @@ workspaces:
   - name: '7'
   - name: '8'
   - name: '9'
+  - name: '0'
+{{- end }}
 
 window_rules:
   # Zen restores its last window size/position on startup after GlazeWM has tiled it (overlapping
@@ -224,6 +253,8 @@ keybindings:
     bindings: ['alt+8']
   - commands: ['focus --workspace 9']
     bindings: ['alt+9']
+  - commands: ['focus --workspace 0']
+    bindings: ['alt+0']
 
   # Move the focused window's parent workspace to a monitor in a given direction.
   - commands: ['move-workspace --direction left']
@@ -254,3 +285,5 @@ keybindings:
     bindings: ['alt+shift+8']
   - commands: ['move --workspace 9', 'focus --workspace 9']
     bindings: ['alt+shift+9']
+  - commands: ['move --workspace 0', 'focus --workspace 0']
+    bindings: ['alt+shift+0']

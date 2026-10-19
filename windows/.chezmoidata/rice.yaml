@@ -4,6 +4,8 @@ rice:
   theme: gruvbox
   style: floating
   font: JetBrainsMono Nerd Font
+  # Bibata Modern cursor size: Regular | Large | Extra-Large (color: `cursors` below)
+  cursor_size: Regular
 
 # Wallpaper set when the theme changes (falls back to `default`); afterwards, pick from
 # ~/Pictures/Wallpapers with "wp" in Flow Launcher. The lock screen follows `landscape`.
@@ -15,6 +17,16 @@ wallpapers:
     landscape: 'C:\Windows\Web\Wallpaper\Windows\img19.jpg'
 
 # WezTerm built-in color scheme per theme (full 16-color ANSI palettes)
+# Mouse cursor per theme: Bibata Modern Amber (yellow) / Classic (black) / Ice (white)
+cursors:
+  gruvbox: Amber
+  catppuccin: Ice
+  tokyonight: Ice
+  rosepine: Ice
+  nord: Ice
+  everforest: Amber
+  kanagawa: Amber
+
 terminal_schemes:
   gruvbox: GruvboxDark
   catppuccin: Catppuccin Mocha
