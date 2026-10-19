@@ -8,9 +8,9 @@ $prefs = @(
     # No tooltips on the browser UI: with a tiling WM, windows move under the cursor and
     # Firefox-based browsers leave tooltips (e.g. a tab's close button) stuck on screen
     'user_pref("browser.chrome.toolbar_tips", false);'
-    # Mica backdrop (Zen's default). Set explicitly because an earlier version of this block
-    # turned it off, and that value stays in prefs.js after the line is gone
-    'user_pref("widget.windows.mica", true);'
+    # No Mica backdrop (Zen's default is on): Windows only draws it on the focused window, so
+    # Zen flips between translucent and solid as focus moves. Keep it always opaque instead
+    'user_pref("widget.windows.mica", false);'
     # Don't restyle every other Zen window whenever focus moves to a new one
     'user_pref("zen.view.grey-out-inactive-windows", false);'
 )
