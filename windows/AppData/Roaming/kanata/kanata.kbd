@@ -1,6 +1,9 @@
 ;; CapsLock: tap = toggle IME (Alt+` on US layout + MS-IME), hold = Ctrl
 ;; Shift + CapsLock: real CapsLock
 ;; Left Win: tap = Flow Launcher (its hotkey is Ctrl+Alt+Space), hold = Win (Win+E etc. still work)
+;; Win + W: wallpaper picker. Windows reserves Win+W (Widgets), so W is sent as Ctrl+Alt+W while
+;;          Win stays held: Flow Launcher's hotkey is Win+Ctrl+Alt+W. Keeping Win down (instead of
+;;          releasing it) means Windows saw another key with it and won't open Start on release.
 ;; Emergency exit: LCtrl + Space + Esc
 
 (defcfg
@@ -8,16 +11,21 @@
 )
 
 (defsrc
-  caps lmet
+  caps lmet w
 )
 
 (defalias
   ;; tap-hold-press: becomes the modifier as soon as another key is pressed (fast Ctrl+C etc.)
   imectl (tap-hold-press 200 200 A-grv lctl)
   cap (fork @imectl caps (lsft rsft))
-  win (tap-hold-press 200 200 C-A-spc lmet)
+  win (tap-hold-press 200 200 C-A-spc (multi lmet (layer-while-held win)))
 )
 
 (deflayer base
-  @cap @win
+  @cap @win w
+)
+
+;; While Win is held
+(deflayer win
+  _ _ C-A-w
 )

@@ -1,0 +1,24 @@
+{{- $w := index .wallpapers "default" -}}
+{{- if hasKey .wallpapers .rice.theme }}{{ $w = merge (index .wallpapers .rice.theme) $w }}{{ end -}}
+{{- $landscape := get $w "landscape" -}}
+{{- $portrait := get $w "portrait" | default "" -}}
+$ErrorActionPreference = 'Stop'
+
+# Sets the theme's wallpaper (rice.yaml `wallpapers`) when the theme or that selection changes.
+# Day-to-day switching is wallpaper.ps1 next/prev/random (Win+W, see GlazeWM config).
+# {{ list $landscape $portrait | toJson }}
+# wallpaper.ps1: {{ include "dot_local/bin/wallpaper.ps1" | sha256sum }}
+
+# Lock screen without Windows Spotlight and its tips
+$cdm = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+if (-not (Test-Path $cdm)) { New-Item $cdm -Force | Out-Null }
+foreach ($name in 'RotatingLockScreenEnabled', 'RotatingLockScreenOverlayEnabled', 'SubscribedContent-338387Enabled') {
+    Set-ItemProperty $cdm -Name $name -Value 0 -Type DWord
+}
+
+$wpArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $HOME '.local\bin\wallpaper.ps1'), 'set', '{{ $landscape }}')
+{{- if $portrait }}
+$wpArgs += '{{ $portrait }}'
+{{- end }}
+& powershell @wpArgs
+if ($LASTEXITCODE -ne 0) { throw "wallpaper.ps1 failed ($LASTEXITCODE)" }

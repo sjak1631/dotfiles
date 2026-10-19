@@ -2,9 +2,12 @@
 {{- /*
   Flow Launcher rewrites Settings.json itself, so only the keys below are managed;
   everything else is left as Flow wrote it. Hotkey: kanata sends Ctrl+Alt+Space on a Win tap.
+  Win+Ctrl+Alt+W opens the wallpaper plugin (Plugins/Wallpaper, action keyword "wp");
+  kanata turns Win+W into Win+Ctrl+Alt+W because Windows reserves Win+W.
 */ -}}
 {{- $managed := dict
       "Hotkey" "Ctrl + Alt + Space"
+      "CustomPluginHotkeys" (list (dict "Hotkey" "Ctrl + Alt + Win + W" "ActionKeyword" "wp "))
       "Theme" "Rice"
       "ColorScheme" "Dark"
       "UseSound" false

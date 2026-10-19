@@ -5,6 +5,15 @@ rice:
   style: floating
   font: JetBrainsMono Nerd Font
 
+# Wallpaper set when the theme changes (falls back to `default`); Win+W cycles through
+# everything in ~/Pictures/Wallpapers afterwards. The lock screen follows `landscape`.
+# A bare file name refers to ~/Pictures/Wallpapers (images can be dropped there directly, or
+# deployed from windows/Pictures/Wallpapers); absolute paths are used as-is.
+# Portrait monitors get `portrait` (falls back to `landscape`).
+wallpapers:
+  default:
+    landscape: 'C:\Windows\Web\Wallpaper\Windows\img19.jpg'
+
 # Layout parameters (px, scaled with DPI).
 #   bar_margin: space above the bar. Zebar widget height = bar_margin + bar_height
 #   corner:     GlazeWM corner style (square | rounded | small_rounded)

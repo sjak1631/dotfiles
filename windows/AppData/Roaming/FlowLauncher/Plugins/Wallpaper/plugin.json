@@ -1,0 +1,12 @@
+{
+  "ID": "6f0d2b5e-3c1a-4f7e-9b8d-2a4c6e8f0d13",
+  "ActionKeyword": "wp",
+  "Name": "Wallpaper",
+  "Description": "~/Pictures/Wallpapers から壁紙を選ぶ (sjak1631/dotfiles)",
+  "Author": "sjak1631",
+  "Version": "1.0.0",
+  "Language": "Executable",
+  "Website": "https://github.com/sjak1631/dotfiles",
+  "IcoPath": "icon.png",
+  "ExecuteFileName": "Wallpaper.exe"
+}
