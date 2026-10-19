@@ -3,7 +3,10 @@ $ErrorActionPreference = 'Stop'
 # Re-runs (reload GlazeWM, restart Zebar) when the rice changes:
 # rice: {{ dict "rice" .rice "style" (index .styles .rice.style) "theme" (index .themes .rice.theme) | toJson | sha256sum }}
 # glazewm: {{ include "dot_glzr/glazewm/config.yaml.tmpl" | sha256sum }}
-# zebar: {{ list (include "dot_glzr/zebar/settings.json") (include "dot_glzr/zebar/dotfiles/zpack.json.tmpl") (include "dot_glzr/zebar/dotfiles/vars.css.tmpl") (include "dot_glzr/zebar/dotfiles/bar.html") (include "dot_glzr/zebar/dotfiles/bar.js") (include "dot_glzr/zebar/dotfiles/style.css") | join "" | sha256sum }}
+# taskbar: {{ include "dot_local/bin/taskbar.ps1" | sha256sum }}
+{{- $zebar := list "settings.json" "dotfiles/zpack.json.tmpl" "dotfiles/vars.css.tmpl" "dotfiles/bar.html" "dotfiles/bar.js" "dotfiles/style.css" "dotfiles/common.js" "dotfiles/paths.js.tmpl" "dotfiles/panel.html" "dotfiles/panel.css" "dotfiles/panel.js" }}
+# bin: {{ list (include "dot_local/bin/power.ps1") (include "dot_local/bin/bluetooth.ps1") (include "dot_local/bin/clickwatch.ps1") | join "" | sha256sum }}
+# zebar:{{ range $zebar }} {{ include (print "dot_glzr/zebar/" .) | sha256sum | trunc 12 }}{{ end }}
 
 $dir = Join-Path $env:ProgramFiles 'glzr.io'
 $wm = Join-Path $dir 'GlazeWM\glazewm.exe'
@@ -21,9 +24,15 @@ $sc.Save()
 if (Get-Process glazewm -ErrorAction SilentlyContinue) {
     & $cli command wm-reload-config | Out-Null
     Get-Process zebar -ErrorAction SilentlyContinue | Stop-Process -Force
+    # Helpers spawned by Zebar inherit its server socket; a leftover one breaks the next Zebar
+    Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
+        Where-Object CommandLine -match '[\\/]\.local[\\/]bin[\\/]clickwatch\.ps1' |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     Start-Sleep 1
     Start-Process $zebar
-    Write-Host '==> GlazeWM config reloaded, Zebar restarted'
+    # startup_commands only run when GlazeWM starts, so (re)start the taskbar watcher here too
+    Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $HOME '.local\bin\taskbar.ps1'), 'watch'
+    Write-Host '==> GlazeWM config reloaded, Zebar restarted, taskbar watcher started'
 } else {
     Start-Process $wm
     Write-Host '==> GlazeWM started'

@@ -5,8 +5,14 @@
 # Based on GlazeWM v3.10.1 sample config.
 
 general:
-  startup_commands: ['shell-exec zebar']
-  shutdown_commands: ['shell-exec taskkill /IM zebar.exe /F']
+  # Zebar + Flow Launcher replace the taskbar: keep it hidden while GlazeWM runs
+  # (the watcher restores it by itself if GlazeWM goes away)
+  startup_commands:
+    - 'shell-exec zebar'
+    - 'shell-exec powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 watch'
+  shutdown_commands:
+    - 'shell-exec taskkill /IM zebar.exe /F'
+    - 'shell-exec powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 show'
   config_reload_commands: []
   focus_follows_cursor: false
   toggle_workspace_on_refocus: false

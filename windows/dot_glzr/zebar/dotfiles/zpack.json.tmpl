@@ -36,6 +36,35 @@
 {{ template "preset" (dict "name" "secondary" "height" (add $s.bar_margin $s.bar_height)) }}
       ]
       {{- /* settings.json only starts "primary"; "secondary" is kept for a bar on the side monitor */}}
+    },
+    {
+      "name": "panel",
+      "htmlPath": "./panel.html",
+      "zOrder": "top_most",
+      "shownInTaskbar": false,
+      "focused": false,
+      "resizable": false,
+      "transparent": true,
+      "includeFiles": ["*.html", "*.css", "*.js"],
+      "caching": { "defaultDuration": 604800, "rules": [] },
+      "privileges": {
+        "shellCommands": [
+          { "program": "powershell", "argsRegex": ".*/\\.local/bin/(power|bluetooth|clickwatch)\\.ps1.*" }
+        ]
+      },
+      "presets": [
+        {
+          "name": "hidden",
+          "anchor": "top_left",
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "width": "300px",
+          "height": "300px",
+          "monitorSelection": { "type": "primary" },
+          "dockToEdge": { "enabled": false, "edge": null, "windowMargin": "0px" }
+        }
+      ]
+      {{- /* Drop-down panels: started hidden with Zebar, moved and shown by panel.js */}}
     }
   ]
 }

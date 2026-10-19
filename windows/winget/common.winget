@@ -113,6 +113,14 @@ properties:
         id: glzr-io.glazewm
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: flowlauncher
+      directives:
+        description: Flow Launcher (opened by a Win key tap, see kanata.kbd)
+        allowPrerelease: true
+      settings:
+        id: Flow-Launcher.Flow-Launcher
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: font-jetbrainsmono-nerd
       directives:
         description: JetBrainsMono Nerd Font

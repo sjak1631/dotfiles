@@ -1,4 +1,5 @@
 import * as zebar from 'https://esm.sh/zebar@3.3.1';
+import { OPEN_KEY, CMD_KEY } from './common.js';
 
 const providers = zebar.createProviderGroup({
   glazewm: { type: 'glazewm' },
@@ -7,8 +8,27 @@ const providers = zebar.createProviderGroup({
   network: { type: 'network', refreshInterval: 5000 },
   battery: { type: 'battery', refreshInterval: 10000 },
   media: { type: 'media' },
+  audio: { type: 'audio' },
+  systray: { type: 'systray' },
   date: { type: 'date', formatting: 'M/d (EEE) HH:mm', locale: 'ja-JP' },
 });
+
+// Shows a drop-down panel (panel.html) right below `anchorEl`, right-aligned to it.
+// Clicking the item of the open panel closes it; clicking another item switches panels.
+function sendPanel(cmd) {
+  try { localStorage.setItem(CMD_KEY, JSON.stringify({ ...cmd, t: Date.now() })); } catch {}
+}
+
+function togglePanel(name, anchorEl) {
+  let open = null;
+  try { open = localStorage.getItem(OPEN_KEY); } catch {}
+  if (open === name) { sendPanel({ op: 'close' }); return; }
+
+  // The bar sits at the primary monitor's top-left, so bar coordinates are screen coordinates.
+  // The panel sizes itself and right-aligns to `right`.
+  const r = anchorEl.getBoundingClientRect();
+  sendPanel({ op: 'open', name, right: r.right, barWidth: window.innerWidth, barHeight: window.innerHeight });
+}
 
 const $ = (id) => document.getElementById(id);
 const style = getComputedStyle(document.documentElement).getPropertyValue('--style').trim();
@@ -75,8 +95,18 @@ function batteryIcon(pct) {
   return icon('nf-fa-battery_0');
 }
 
+function volumeIcon(dev) {
+  if (dev.isMuted || dev.volume === 0) return icon('nf-md-volume_off');
+  if (dev.volume < 34) return icon('nf-md-volume_low');
+  if (dev.volume < 67) return icon('nf-md-volume_medium');
+  return icon('nf-md-volume_high');
+}
+
 function render() {
   const o = providers.outputMap;
+
+  const dev = o.audio?.defaultPlaybackDevice;
+  setItem('volume', dev ? `${volumeIcon(dev)}${dev.isMuted ? 'mute' : Math.round(dev.volume) + '%'}` : null);
 
   renderWorkspaces(o.glazewm);
 
@@ -96,6 +126,28 @@ function render() {
     : null);
   setItem('date', o.date ? esc(o.date.formatted) : null);
 }
+
+// Event handlers read the latest output, so they are attached once
+$('media').addEventListener('click', (e) => togglePanel('media', e.currentTarget));
+$('media').addEventListener('auxclick', (e) => { if (e.button === 1) providers.outputMap.media?.togglePlayPause(); });
+$('date').addEventListener('click', (e) => togglePanel('calendar', e.currentTarget));
+$('tray').addEventListener('click', (e) => togglePanel('tray', e.currentTarget));
+$('bluetooth').addEventListener('click', (e) => togglePanel('bluetooth', e.currentTarget));
+$('power').addEventListener('click', (e) => togglePanel('power', e.currentTarget));
+$('volume').addEventListener('click', (e) => togglePanel('volume', e.currentTarget));
+$('volume').addEventListener('auxclick', (e) => {
+  if (e.button !== 1) return;
+  const { audio } = providers.outputMap;
+  const dev = audio?.defaultPlaybackDevice;
+  if (dev) audio.setMute(!dev.isMuted);
+});
+$('volume').addEventListener('wheel', (e) => {
+  const { audio } = providers.outputMap;
+  const dev = audio?.defaultPlaybackDevice;
+  if (!dev) return;
+  const next = Math.min(100, Math.max(0, Math.round(dev.volume) + (e.deltaY < 0 ? 2 : -2)));
+  audio.setVolume(next);
+}, { passive: true });
 
 providers.onOutput(render);
 render();

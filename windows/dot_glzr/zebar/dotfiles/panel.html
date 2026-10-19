@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" href="./vars.css" />
+    <link rel="stylesheet" href="./panel.css" />
+  </head>
+  <body>
+    <!-- One section per panel; panel.js shows one at a time -->
+    <section id="calendar" class="panel calendar" hidden>
+      <div class="now">
+        <div class="time" data-ref="time"></div>
+        <div class="muted" data-ref="date"></div>
+      </div>
+      <div class="head">
+        <button type="button" data-ref="prev" aria-label="前の月"><i class="nf nf-md-chevron_left"></i></button>
+        <button type="button" data-ref="month" class="month" title="今月に戻る"></button>
+        <button type="button" data-ref="next" aria-label="次の月"><i class="nf nf-md-chevron_right"></i></button>
+      </div>
+      <div class="grid" data-ref="grid"></div>
+    </section>
+
+    <section id="volume" class="panel volume" hidden>
+      <div class="label">出力</div>
+      <div class="list" data-ref="playback"></div>
+      <div data-ref="rec" hidden>
+        <hr />
+        <div class="label" style="margin: 8px 0">入力</div>
+        <div class="list" data-ref="recording"></div>
+      </div>
+    </section>
+
+    <section id="media" class="panel media" hidden>
+      <div class="empty" data-ref="empty" hidden>再生中のメディアはありません</div>
+      <div data-ref="player" hidden>
+        <div class="track">
+          <div class="title ellipsis" data-ref="title"></div>
+          <div class="muted ellipsis" data-ref="sub"></div>
+        </div>
+        <div class="progress">
+          <div class="bar"><i data-ref="fill"></i></div>
+          <div class="times"><span data-ref="pos"></span><span data-ref="end"></span></div>
+        </div>
+        <div class="controls">
+          <button type="button" data-ref="prev" aria-label="前の曲"><i class="nf nf-md-skip_previous"></i></button>
+          <button type="button" data-ref="play" class="main" aria-label="再生 / 一時停止"></button>
+          <button type="button" data-ref="next" aria-label="次の曲"><i class="nf nf-md-skip_next"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="tray" class="panel tray" hidden>
+      <div class="grid" data-ref="grid"></div>
+      <div class="empty" data-ref="empty" hidden>トレイアイコンはありません</div>
+    </section>
+
+    <section id="bluetooth" class="panel bluetooth" hidden>
+      <div class="head">
+        <span class="label">Bluetooth</span>
+        <button type="button" class="switch" data-ref="toggle" role="switch" aria-checked="false" aria-label="Bluetooth のオン / オフ"><i></i></button>
+      </div>
+      <div class="list" data-ref="list"></div>
+      <div class="empty" data-ref="empty" hidden></div>
+      <button type="button" class="link" data-ref="settings"><i class="nf nf-md-cog"></i>Bluetooth の設定を開く</button>
+    </section>
+
+    <section id="power" class="panel power" hidden>
+      <button type="button" data-action="lock"><i class="nf nf-md-lock"></i>ロック</button>
+      <button type="button" data-action="sleep"><i class="nf nf-md-power_sleep"></i>スリープ</button>
+      <button type="button" data-action="signout" data-confirm><i class="nf nf-md-logout"></i>サインアウト</button>
+      <button type="button" data-action="restart" data-confirm><i class="nf nf-md-restart"></i>再起動</button>
+      <button type="button" data-action="shutdown" data-confirm class="danger"><i class="nf nf-md-power"></i>シャットダウン</button>
+    </section>
+
+    <script type="module" src="./panel.js"></script>
+  </body>
+</html>

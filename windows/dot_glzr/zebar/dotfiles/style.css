@@ -23,7 +23,8 @@ i.nf { color: var(--accent2); margin-right: 6px; font-size: 13px; }
 
 .bar {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* Side islands take what they need; the title gets the rest and truncates */
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--gap);
   height: 100%;
@@ -38,7 +39,7 @@ i.nf { color: var(--accent2); margin-right: 6px; font-size: 13px; }
   min-width: 0;
 }
 .left { justify-self: start; }
-.center { justify-self: center; max-width: 40vw; }
+.center { justify-self: center; max-width: 100%; }
 .right { justify-self: end; gap: 14px; }
 
 /* ---- floating: each group is its own pill ---- */
@@ -89,6 +90,11 @@ i.nf { color: var(--accent2); margin-right: 6px; font-size: 13px; }
 .media { max-width: 220px; overflow: hidden; }
 .media .ellipsis { display: block; min-width: 0; }
 .clock { color: var(--fg); font-weight: 600; }
+.power i.nf { color: var(--red); margin-right: 0; }
+/* Bigger hit area than the glyph itself; negative margins keep the visual spacing */
+.clickable { cursor: pointer; height: 100%; padding: 0 6px; margin: 0 -6px; }
+.right > .clickable:last-child { padding-right: 12px; margin-right: -12px; }
+.clickable:hover { color: var(--accent); }
 .warn { color: var(--red); }
 
 /* Narrow (portrait) monitor: workspaces + clock only */

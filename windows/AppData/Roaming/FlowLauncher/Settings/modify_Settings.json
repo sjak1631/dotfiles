@@ -1,0 +1,24 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  Flow Launcher rewrites Settings.json itself, so only the keys below are managed;
+  everything else is left as Flow wrote it. Hotkey: kanata sends Ctrl+Alt+Space on a Win tap.
+*/ -}}
+{{- $managed := dict
+      "Hotkey" "Ctrl + Alt + Space"
+      "Theme" "Rice"
+      "ColorScheme" "Dark"
+      "UseSound" false
+      "StartFlowLauncherOnSystemStartup" true
+      "HideOnStartup" true
+      "ShowAtTopmost" true
+      "AutoUpdates" false
+-}}
+{{- $current := dict -}}
+{{- if .chezmoi.stdin }}{{ $current = .chezmoi.stdin | fromJson }}{{ end -}}
+{{- $changed := false -}}
+{{- range $k, $v := $managed }}{{ if ne (toJson (get $current $k)) (toJson $v) }}{{ $changed = true }}{{ end }}{{ end -}}
+{{- if $changed -}}
+{{ mergeOverwrite $current $managed | toPrettyJson }}
+{{- else -}}
+{{ .chezmoi.stdin }}
+{{- end -}}

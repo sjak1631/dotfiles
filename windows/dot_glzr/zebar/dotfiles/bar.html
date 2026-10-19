@@ -18,12 +18,16 @@
         <span id="title" class="title"></span>
       </div>
       <div class="island right">
-        <span id="media" class="item media wide-only" hidden></span>
+        <span id="media" class="item media clickable wide-only" title="クリックで詳細、中クリックで再生 / 一時停止" hidden></span>
         <span id="cpu" class="item wide-only"></span>
         <span id="memory" class="item wide-only"></span>
         <span id="network" class="item wide-only"></span>
+        <span id="volume" class="item clickable" title="クリックで詳細、ホイールで音量、中クリックでミュート" hidden></span>
         <span id="battery" class="item" hidden></span>
-        <span id="date" class="item clock"></span>
+        <span id="bluetooth" class="item clickable wide-only" title="Bluetooth"><i class="nf nf-md-bluetooth"></i></span>
+        <span id="tray" class="item clickable wide-only" title="トレイ"><i class="nf nf-md-dots_grid"></i></span>
+        <span id="date" class="item clock clickable" title="クリックでカレンダー"></span>
+        <span id="power" class="item clickable power" title="電源"><i class="nf nf-md-power"></i></span>
       </div>
     </div>
     <script type="module" src="./bar.js"></script>

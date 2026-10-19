@@ -1,5 +1,6 @@
 ;; CapsLock: tap = toggle IME (Alt+` on US layout + MS-IME), hold = Ctrl
 ;; Shift + CapsLock: real CapsLock
+;; Left Win: tap = Flow Launcher (its hotkey is Ctrl+Alt+Space), hold = Win (Win+E etc. still work)
 ;; Emergency exit: LCtrl + Space + Esc
 
 (defcfg
@@ -7,15 +8,16 @@
 )
 
 (defsrc
-  caps
+  caps lmet
 )
 
 (defalias
-  ;; tap-hold-press: becomes Ctrl as soon as another key is pressed (fast Ctrl+C etc.)
+  ;; tap-hold-press: becomes the modifier as soon as another key is pressed (fast Ctrl+C etc.)
   imectl (tap-hold-press 200 200 A-grv lctl)
   cap (fork @imectl caps (lsft rsft))
+  win (tap-hold-press 200 200 C-A-spc lmet)
 )
 
 (deflayer base
-  @cap
+  @cap @win
 )

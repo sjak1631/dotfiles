@@ -1,0 +1,5 @@
+# Files this repo used to deploy; `chezmoi apply` deletes them from the home directory.
+.glzr/zebar/dotfiles/panel-calendar.html
+.glzr/zebar/dotfiles/panel-volume.html
+.glzr/zebar/dotfiles/panel-media.html
+.glzr/zebar/dotfiles/panel-tray.html

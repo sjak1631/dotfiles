@@ -5,6 +5,11 @@
       "pack": "dotfiles",
       "widget": "bar",
       "preset": "primary"
+    },
+    {
+      "pack": "dotfiles",
+      "widget": "panel",
+      "preset": "hidden"
     }
   ]
 }

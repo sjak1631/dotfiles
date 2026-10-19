@@ -1,0 +1,14 @@
+$ErrorActionPreference = 'Stop'
+
+# Restarts Flow Launcher when its managed settings or theme change:
+# settings: {{ include "AppData/Roaming/FlowLauncher/Settings/modify_Settings.json" | sha256sum }}
+# theme: {{ include "AppData/Roaming/FlowLauncher/Themes/Rice.xaml.tmpl" | sha256sum }} {{ index .themes .rice.theme | toJson | sha256sum }}
+
+$exe = Join-Path $env:LOCALAPPDATA 'FlowLauncher\Flow.Launcher.exe'
+if (-not (Test-Path $exe)) { Write-Host '==> skip Flow Launcher (not installed)'; exit 0 }
+
+# Flow saves its in-memory settings on a normal exit, which would undo the new Settings.json
+Get-Process Flow.Launcher -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep 1
+Start-Process $exe
+Write-Host '==> Flow Launcher restarted'
