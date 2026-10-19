@@ -6,7 +6,8 @@ NixOS-WSL の flake (host `nixos-wsl`)。
 |---|---|
 | `flake.nix` | inputs (nixpkgs 26.05 / NixOS-WSL / home-manager) |
 | `configuration.nix` | システム設定 (WSL, nix, nix-ld, ユーザー) |
-| `home.nix` | home-manager (zsh, git, CLI ツール) |
+| `home.nix` | home-manager (zsh, git, CLI ツール, yazi, fastfetch などの rice 系コマンド) |
+| `yazi/yazi.toml` | yazi の設定 (Windows 側も chezmoi で同じファイルを使う) |
 
 ## セットアップ
 
