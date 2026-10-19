@@ -3,6 +3,7 @@
   Flow Launcher rewrites Settings.json itself, so only the keys below are managed;
   everything else is left as Flow wrote it. Hotkey: Flow's default Alt+Space (GlazeWM leaves it
   free). The wallpaper plugin opens by typing "wp" (Plugins/Wallpaper).
+  Autostart is off here: the dotfiles-flow logon task starts Flow (run_onchange_after_80-autostart).
 */ -}}
 {{- $managed := dict
       "Hotkey" "Alt + Space"
@@ -10,7 +11,7 @@
       "Theme" "Rice"
       "ColorScheme" "Dark"
       "UseSound" false
-      "StartFlowLauncherOnSystemStartup" true
+      "StartFlowLauncherOnSystemStartup" false
       "HideOnStartup" true
       "ShowAtTopmost" true
       "AutoUpdates" false

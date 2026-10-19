@@ -6,13 +6,15 @@
 
 general:
   # Zebar + Flow Launcher replace the taskbar: keep it hidden while GlazeWM runs
-  # (the watcher restores it by itself if GlazeWM goes away)
+  # (the watcher restores it by itself if GlazeWM goes away).
+  # PowerShell goes through `conhost --headless`: with Windows Terminal as the default terminal,
+  # -WindowStyle Hidden still shows a window (which GlazeWM would even tile).
   startup_commands:
     - 'shell-exec zebar'
-    - 'shell-exec powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 watch'
+    - 'shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 watch'
   shutdown_commands:
     - 'shell-exec taskkill /IM zebar.exe /F'
-    - 'shell-exec powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 show'
+    - 'shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/taskbar.ps1 show'
   config_reload_commands: []
   focus_follows_cursor: false
   toggle_workspace_on_refocus: false
@@ -80,6 +82,13 @@ workspaces:
   - name: '9'
 
 window_rules:
+  # Zen restores its last window size/position on startup after GlazeWM has tiled it (overlapping
+  # the other windows); re-apply the layout shortly after it appears
+  - commands: ['shell-exec conhost.exe --headless cmd.exe /c %USERPROFILE%/.local/bin/glazewm-settle.cmd']
+    on: ['manage']
+    match:
+      - window_process: { equals: 'zen' }
+
   - commands: ['ignore']
     match:
       # Ignores any Zebar windows.

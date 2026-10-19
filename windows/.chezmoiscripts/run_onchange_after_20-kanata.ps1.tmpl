@@ -17,14 +17,9 @@ $cfg = Join-Path $env:APPDATA 'kanata\kanata.kbd'
 & (Join-Path $pkgDir.FullName 'kanata_windows_tty_winIOv2_x64.exe') --cfg $cfg --check --quiet
 if ($LASTEXITCODE -ne 0) { throw "kanata config check failed: $cfg" }
 
-# Start at logon
-$lnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'kanata.lnk'
-$shell = New-Object -ComObject WScript.Shell
-$sc = $shell.CreateShortcut($lnk)
-$sc.TargetPath = $exe
-$sc.Arguments = "--cfg `"$cfg`""
-$sc.WorkingDirectory = Split-Path $cfg
-$sc.Save()
+# Started at logon by the dotfiles-kanata task (run_onchange_after_80-autostart); older versions
+# used a Startup shortcut
+Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) 'kanata.lnk') -ErrorAction SilentlyContinue
 
 # Restart now to pick up the new config
 Get-Process $exeName -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -37,5 +32,5 @@ if ([Console]::CapsLock) {
     Write-Host '==> CapsLock turned off'
 }
 
-Start-Process $lnk
+Start-Process $exe -ArgumentList '--cfg', "`"$cfg`"" -WorkingDirectory (Split-Path $cfg)
 Write-Host '==> kanata (re)started'

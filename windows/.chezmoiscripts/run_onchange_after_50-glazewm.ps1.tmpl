@@ -14,12 +14,9 @@ $cli = Join-Path $dir 'GlazeWM\cli\glazewm.exe'
 $zebar = Join-Path $dir 'Zebar\zebar.exe'
 if (-not (Test-Path $wm)) { Write-Host '==> skip GlazeWM (not installed)'; exit 0 }
 
-# Start at logon (GlazeWM starts Zebar via startup_commands)
-$lnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'GlazeWM.lnk'
-$sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$sc.TargetPath = $wm
-$sc.WorkingDirectory = Split-Path $wm
-$sc.Save()
+# Started at logon by the dotfiles-glazewm task (run_onchange_after_80-autostart); GlazeWM starts
+# Zebar via startup_commands. Older versions used a Startup shortcut.
+Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) 'GlazeWM.lnk') -ErrorAction SilentlyContinue
 
 if (Get-Process glazewm -ErrorAction SilentlyContinue) {
     & $cli command wm-reload-config | Out-Null
@@ -31,7 +28,8 @@ if (Get-Process glazewm -ErrorAction SilentlyContinue) {
     Start-Sleep 1
     Start-Process $zebar
     # startup_commands only run when GlazeWM starts, so (re)start the taskbar watcher here too
-    Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $HOME '.local\bin\taskbar.ps1'), 'watch'
+    # conhost --headless: no window even when Windows Terminal is the default terminal
+    Start-Process conhost.exe -ArgumentList '--headless', 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$(Join-Path $HOME '.local\bin\taskbar.ps1')`"", 'watch'
     Write-Host '==> GlazeWM config reloaded, Zebar restarted, taskbar watcher started'
 } else {
     Start-Process $wm

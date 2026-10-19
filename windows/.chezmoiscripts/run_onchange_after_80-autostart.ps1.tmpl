@@ -1,0 +1,63 @@
+$ErrorActionPreference = 'Stop'
+
+# Logon tasks that start the rice right away, one task per program, launching the exe directly:
+# - Logon tasks start immediately; Startup-folder and Run-key apps (Slack, Steam, ...) are delayed
+#   by Windows, so the rice comes up first.
+# - No PowerShell in between: at a busy logon it takes seconds to start, and with Windows Terminal
+#   as the default terminal it shows a window even when told to stay hidden.
+# No admin needed: they're the user's own tasks at Limited run level.
+# GlazeWM starts Zebar and the taskbar watcher itself (startup_commands).
+
+$user = "$env:USERDOMAIN\$env:USERNAME"
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
+$principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
+# Task processes default to below-normal priority (7); 4 = normal
+$settings = New-ScheduledTaskSettingsSet -Priority 4 -ExecutionTimeLimit ([TimeSpan]::Zero) `
+    -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew
+
+function Register-LogonTask([string]$name, [string]$exe, [string]$arguments, [string]$description, [switch]$ViaShell) {
+    if (-not (Test-Path $exe)) {
+        Write-Host "==> skip logon task $name ($exe not found)"
+        Unregister-ScheduledTask -TaskName $name -Confirm:$false -ErrorAction SilentlyContinue
+        return
+    }
+    $action = if ($ViaShell) {
+        # UIAccess executables (GlazeWM) can't be started with CreateProcess, which is what Task
+        # Scheduler uses (0x800702E4, elevation required); `start` goes through ShellExecute.
+        # cmd starts instantly; conhost --headless keeps its console invisible.
+        New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless cmd.exe /c start `"`" `"$exe`" $arguments" -WorkingDirectory (Split-Path $exe)
+    } elseif ($arguments) {
+        New-ScheduledTaskAction -Execute $exe -Argument $arguments -WorkingDirectory (Split-Path $exe)
+    } else {
+        New-ScheduledTaskAction -Execute $exe -WorkingDirectory (Split-Path $exe)
+    }
+    Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal `
+        -Settings $settings -Description "$description (sjak1631/dotfiles)" -Force | Out-Null
+    Write-Host "==> logon task registered: $name"
+}
+
+# kanata: the package folder name is fixed, so the path is stable across updates
+$kanataDir = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages') -Directory -Filter 'jtroo.kanata_gui_*' -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+$kanataExe = if ($kanataDir) { Join-Path $kanataDir.FullName 'kanata_windows_gui_winIOv2_x64.exe' } else { '' }
+Register-LogonTask 'dotfiles-kanata' $kanataExe "--cfg `"$(Join-Path $env:APPDATA 'kanata\kanata.kbd')`"" 'Keyboard remapping'
+
+# GlazeWM goes through glazewm-start.cmd, which retries if it crashes right after logon
+# glazewm-start.cmd: {{ include "dot_local/bin/glazewm-start.cmd" | sha256sum }}
+if (Test-Path (Join-Path $env:ProgramFiles 'glzr.io\GlazeWM\glazewm.exe')) {
+    $starter = Join-Path $HOME '.local\bin\glazewm-start.cmd'
+    $action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless cmd.exe /c `"$starter`"" -WorkingDirectory (Split-Path $starter)
+    Register-ScheduledTask -TaskName 'dotfiles-glazewm' -Action $action -Trigger $trigger -Principal $principal `
+        -Settings $settings -Description 'Tiling window manager (+ Zebar), restarted if it crashes at logon (sjak1631/dotfiles)' -Force | Out-Null
+    Write-Host '==> logon task registered: dotfiles-glazewm'
+}
+
+# The stub exe, not app-<version>\, so updates don't break it
+Register-LogonTask 'dotfiles-flow' (Join-Path $env:LOCALAPPDATA 'FlowLauncher\Flow.Launcher.exe') '' 'Launcher'
+
+# Replaced by the tasks above
+Unregister-ScheduledTask -TaskName 'dotfiles-rice' -Confirm:$false -ErrorAction SilentlyContinue
+Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'Flow.Launcher' -ErrorAction SilentlyContinue
+foreach ($lnk in 'kanata.lnk', 'GlazeWM.lnk') {
+    Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) $lnk) -ErrorAction SilentlyContinue
+}

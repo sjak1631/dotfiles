@@ -8,6 +8,11 @@ $prefs = @(
     # No tooltips on the browser UI: with a tiling WM, windows move under the cursor and
     # Firefox-based browsers leave tooltips (e.g. a tab's close button) stuck on screen
     'user_pref("browser.chrome.toolbar_tips", false);'
+    # Opaque windows instead of the Mica backdrop: a new or resized window (GlazeWM resizes on
+    # every new window) otherwise shows the blurred desktop through it until Zen repaints
+    'user_pref("widget.windows.mica", false);'
+    # Don't restyle every other Zen window whenever focus moves to a new one
+    'user_pref("zen.view.grey-out-inactive-windows", false);'
 )
 
 $begin = '// --- managed by chezmoi (sjak1631/dotfiles): begin ---'
@@ -32,5 +37,13 @@ foreach ($dir in Get-ChildItem $profiles -Directory) {
     if ($updated -ne $current) {
         [IO.File]::WriteAllText($file, $updated, (New-Object Text.UTF8Encoding $false))
         Write-Host "==> Zen prefs updated: $($dir.Name) (restart Zen to apply)"
+    }
+
+    # An earlier version made xulstore.json read-only (to stop Zen restoring its window geometry);
+    # GlazeWM now re-tiles Zen after it appears instead, so let Zen save its UI state again
+    $xul = Join-Path $dir.FullName 'xulstore.json'
+    if ((Test-Path $xul) -and (Get-Item $xul).IsReadOnly) {
+        (Get-Item $xul).IsReadOnly = $false
+        Write-Host "==> Zen xulstore.json writable again: $($dir.Name)"
     }
 }
