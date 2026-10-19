@@ -6,6 +6,9 @@ rice:
   font: JetBrainsMono Nerd Font
   # Bibata Modern cursor size: Regular | Large | Extra-Large (color: `cursors` below)
   cursor_size: Regular
+  # WezTerm background opacity (1 = opaque). Plain transparency, no blur: Windows' blurred
+  # backdrops (Mica/Acrylic) turn solid whenever the window loses focus
+  terminal_opacity: 0.85
 
 # Wallpaper set when the theme changes (falls back to `default`); afterwards, pick from
 # ~/Pictures/Wallpapers with "wp" in Flow Launcher. The lock screen follows `landscape`.

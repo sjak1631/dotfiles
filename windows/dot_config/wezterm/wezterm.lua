@@ -53,6 +53,9 @@ config.harfbuzz_features = { 'calt=1', 'liga=1' }
 
 -- ---- window: no title bar (GlazeWM tiles it), tab bar only when needed ----
 config.window_decorations = 'RESIZE'
+-- Translucent background (rice.yaml: terminal_opacity); stays translucent when unfocused
+config.window_background_opacity = rice.opacity
+config.win32_system_backdrop = 'Disable'
 config.window_padding = { left = 10, right = 10, top = 8, bottom = 8 }
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
