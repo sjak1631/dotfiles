@@ -1,0 +1,83 @@
+{{- if eq .machine "desktop" -}}
+$ErrorActionPreference = 'Stop'
+
+# Little Big Mouse: physical monitor sizes and placement (mm) so the cursor crosses monitors smoothly.
+# Sizes are of the visible area in the monitor's native (landscape) orientation.
+# Gap between monitors = sum of the facing borders (bezels). Here: 20mm = DELL.Left 10 + G-133Q.Right 10.
+# Location is the top-left of the visible area, relative to the primary monitor.
+$monitors = @(
+    @{ Pnp = 'DELA1E7'; Width = 527; Height = 296; Borders = @{ Left = 10; Top = 20; Right = 20; Bottom = 20 }; X = 0;    Y = 0 }  # DELL G2422HS 23.8"
+    @{ Pnp = 'RTK0013'; Width = 286; Height = 179; Borders = @{ Left = 20; Top = 20; Right = 10; Bottom = 20 }; X = -199; Y = 0 }  # G-133Q 13.3", portrait
+)
+
+$exe = 'C:\Program Files\LittleBigMouse\LittleBigMouse.Ui.Avalonia.exe'
+if (-not (Test-Path $exe)) { Write-Host '==> skip Little Big Mouse (not installed)'; exit 0 }
+
+$base = 'HKCU:\SOFTWARE\Mgth\LittleBigMouse'
+function Stop-Lbm {
+    $procs = Get-Process 'LittleBigMouse.*' -ErrorAction SilentlyContinue
+    if (-not $procs) { return }
+    try { $procs | Stop-Process -Force -ErrorAction Stop }
+    catch {
+        # The installer launches LBM elevated right after install; stopping that instance needs elevation
+        Write-Host '==> Little Big Mouse is running elevated, stopping it (UAC prompt)'
+        Start-Process taskkill -ArgumentList '/F', '/IM', 'LittleBigMouse.*' -Verb RunAs -Wait -WindowStyle Hidden
+    }
+    Start-Sleep 1
+}
+function Set-Str($path, $values) {
+    if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+    foreach ($k in $values.Keys) { Set-ItemProperty -Path $path -Name $k -Value ([string]$values[$k]) -Type String }
+}
+
+# The layout key embeds monitor serials, so it is never stored in this repo. Let LBM create it on first run.
+$layoutsPath = "$base\Layouts"
+if (-not (Test-Path $layoutsPath) -or -not (Get-ChildItem $layoutsPath)) {
+    Write-Host '==> Little Big Mouse: first run to detect monitors'
+    Start-Process $exe
+    for ($i = 0; $i -lt 30 -and -not ((Test-Path $layoutsPath) -and (Get-ChildItem $layoutsPath)); $i++) { Start-Sleep 1 }
+}
+Stop-Lbm
+
+foreach ($m in $monitors) {
+    Set-Str "$base\monitors\$($m.Pnp)\Size" @{ Width = $m.Width; Height = $m.Height }
+    Set-Str "$base\monitors\$($m.Pnp)\Borders" $m.Borders
+}
+
+foreach ($layout in Get-ChildItem $layoutsPath -ErrorAction SilentlyContinue) {
+    # Only touch layouts made of exactly these monitors
+    $ids = $layout.PSChildName -split '\+'
+    if ($ids.Count -ne $monitors.Count -or ($monitors | Where-Object { $p = $_.Pnp; -not ($ids | Where-Object { $_ -like "$p*" }) })) { continue }
+
+    Set-Str $layout.PSPath @{ Enabled = 1; StartMinimized = 1 }
+    foreach ($m in $monitors) {
+        $pm = Get-ChildItem "$($layout.PSPath)\PhysicalMonitors" | Where-Object PSChildName -like "$($m.Pnp)*"
+        foreach ($p in $pm) { Set-Str $p.PSPath @{ XLocationInMm = $m.X; YLocationInMm = $m.Y } }
+    }
+    Write-Host "==> Little Big Mouse: layout updated ($($monitors.Pnp -join ' + '))"
+}
+
+# Start at logon. LBM elevates itself, so (like its own "Load at startup" option) use a scheduled task
+# with highest privileges instead of the Startup folder. Same task name as LBM uses, so its UI shows it as on.
+$taskName = "LittleBigMouse_$($env:COMPUTERNAME)_$($env:USERNAME)"
+if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)) {
+    Write-Host "==> Little Big Mouse: registering logon task $taskName (UAC prompt)"
+    $user = "$env:USERDOMAIN\$env:USERNAME"
+    $register = @"
+`$a = New-ScheduledTaskAction -Execute '$exe' -WorkingDirectory '$(Split-Path $exe)'
+`$t = New-ScheduledTaskTrigger -AtLogOn -User '$user'
+`$p = New-ScheduledTaskPrincipal -UserId '$user' -LogonType Interactive -RunLevel Highest
+`$s = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -MultipleInstances IgnoreNew
+Register-ScheduledTask -TaskName '$taskName' -Action `$a -Trigger `$t -Principal `$p -Settings `$s -Description 'Multi-dpi aware monitors mouse crossover' -Force
+"@
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($register))
+    Start-Process powershell -ArgumentList '-NoProfile', '-EncodedCommand', $encoded -Verb RunAs -Wait -WindowStyle Hidden
+    if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)) { throw "Failed to register $taskName" }
+}
+
+# Older versions of this script used a Startup shortcut
+Remove-Item (Join-Path ([Environment]::GetFolderPath('Startup')) 'LittleBigMouse.lnk') -ErrorAction SilentlyContinue
+
+Start-ScheduledTask -TaskName $taskName
+Write-Host '==> Little Big Mouse (re)started'
+{{- end }}

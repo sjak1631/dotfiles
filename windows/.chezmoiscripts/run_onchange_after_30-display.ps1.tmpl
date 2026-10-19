@@ -1,0 +1,186 @@
+{{- if eq .machine "desktop" -}}
+$ErrorActionPreference = 'Stop'
+
+# Monitor layout for the desktop. Monitors are matched by EDID id, not \\.\DISPLAYn (which can change).
+# Orientation: 0 = landscape, 1 = portrait, 2 = landscape (flipped), 3 = portrait (flipped)
+# Scale: % (100,125,150,175,200,225,250,300,...). Chosen so both have the same physical UI size:
+#   DELL G2422HS  23.8" 1920x1080 ->  93 ppi -> 100%
+#   G-133Q        13.3" 2560x1600 -> 227 ppi -> 227/93 = 2.45 -> 250%
+$layout = @(
+    @{ Match = 'DELA1E7'; Name = 'DELL G2422HS (main)';     X = 0;     Y = 0; Orientation = 0; Scale = 100 }
+    @{ Match = 'RTK0013'; Name = 'G-133Q (left, portrait)'; X = -1600; Y = 0; Orientation = 1; Scale = 250 }
+)
+
+# Struct handling is done in C#: PowerShell copies structs, which breaks the Win32 out-params.
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class Display {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DISPLAY_DEVICE {
+        public int cb;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]  public string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceString;
+        public int StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceID;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceKey;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DEVMODE {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmDeviceName;
+        public short dmSpecVersion, dmDriverVersion, dmSize, dmDriverExtra;
+        public int dmFields;
+        public int dmPositionX, dmPositionY, dmDisplayOrientation, dmDisplayFixedOutput;
+        public short dmColor, dmDuplex, dmYResolution, dmTTOption, dmCollate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string dmFormName;
+        public short dmLogPixels;
+        public int dmBitsPerPel, dmPelsWidth, dmPelsHeight, dmDisplayFlags, dmDisplayFrequency;
+        public int dmICMMethod, dmICMIntent, dmMediaType, dmDitherType, dmReserved1, dmReserved2, dmPanningWidth, dmPanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern bool EnumDisplayDevices(string device, uint devNum, ref DISPLAY_DEVICE dd, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern bool EnumDisplaySettings(string device, int modeNum, ref DEVMODE dm);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern int ChangeDisplaySettingsEx(string device, ref DEVMODE dm, IntPtr hwnd, uint flags, IntPtr param);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    static extern int ChangeDisplaySettingsEx(string device, IntPtr dm, IntPtr hwnd, uint flags, IntPtr param);
+
+    const int ENUM_CURRENT_SETTINGS = -1;
+    const uint EDD_GET_DEVICE_INTERFACE_NAME = 1;
+    const uint CDS_UPDATEREGISTRY = 0x1, CDS_NORESET = 0x10000000;
+    const int DM_POSITION = 0x20, DM_DISPLAYORIENTATION = 0x80, DM_PELSWIDTH = 0x80000, DM_PELSHEIGHT = 0x100000;
+
+    // Returns \\.\DISPLAYn whose monitor device id contains `match`, or null.
+    public static string Find(string match) {
+        for (uint i = 0; ; i++) {
+            var a = new DISPLAY_DEVICE(); a.cb = Marshal.SizeOf(a);
+            if (!EnumDisplayDevices(null, i, ref a, 0)) return null;
+            for (uint j = 0; ; j++) {
+                var m = new DISPLAY_DEVICE(); m.cb = Marshal.SizeOf(m);
+                if (!EnumDisplayDevices(a.DeviceName, j, ref m, EDD_GET_DEVICE_INTERFACE_NAME)) break;
+                if (m.DeviceID.IndexOf(match, StringComparison.OrdinalIgnoreCase) >= 0) return a.DeviceName;
+            }
+        }
+    }
+
+    // Stages position/orientation for one display; call Commit() to apply.
+    public static string Stage(string device, int x, int y, int orientation) {
+        var dm = new DEVMODE(); dm.dmSize = (short)Marshal.SizeOf(dm);
+        if (!EnumDisplaySettings(device, ENUM_CURRENT_SETTINGS, ref dm))
+            throw new Exception("EnumDisplaySettings failed: " + device);
+        // Swap width/height when switching between landscape and portrait
+        if (dm.dmDisplayOrientation % 2 != orientation % 2) {
+            int w = dm.dmPelsWidth; dm.dmPelsWidth = dm.dmPelsHeight; dm.dmPelsHeight = w;
+        }
+        dm.dmDisplayOrientation = orientation;
+        dm.dmPositionX = x; dm.dmPositionY = y;
+        dm.dmFields = DM_POSITION | DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT;
+        int r = ChangeDisplaySettingsEx(device, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY | CDS_NORESET, IntPtr.Zero);
+        if (r != 0) throw new Exception("ChangeDisplaySettingsEx failed: " + device + " (" + r + ")");
+        return dm.dmPelsWidth + "x" + dm.dmPelsHeight;
+    }
+
+    public static void Commit() {
+        ChangeDisplaySettingsEx(null, IntPtr.Zero, IntPtr.Zero, 0, IntPtr.Zero);
+    }
+}
+
+// Per-monitor DPI scale via the (undocumented) DisplayConfig DPI info types that the Settings app uses.
+public static class DpiScale {
+    [StructLayout(LayoutKind.Sequential)] struct LUID { public uint Low; public int High; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct PATH_INFO {
+        public LUID srcAdapter; public uint srcId, srcModeIdx, srcFlags;
+        public LUID tgtAdapter; public uint tgtId, tgtModeIdx, outputTech, rotation, scaling, refreshNum, refreshDen, scanLine;
+        public int tgtAvailable; public uint tgtFlags;
+        public uint flags;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct MODE_INFO {
+        public uint infoType, id; public LUID adapter;
+        public ulong u0, u1, u2, u3, u4, u5;  // 48-byte union, unused
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct HEADER { public int type; public uint size; public LUID adapter; public uint id; }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct TARGET_NAME {
+        public HEADER header; public uint flags, outputTech; public ushort edidManufacturer, edidProduct; public uint connector;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]  public string friendlyName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string devicePath;
+    }
+
+    [StructLayout(LayoutKind.Sequential)] struct DPI_GET { public HEADER header; public int min, cur, max; }
+    [StructLayout(LayoutKind.Sequential)] struct DPI_SET { public HEADER header; public int scaleRel; }
+
+    [DllImport("user32.dll")] static extern int GetDisplayConfigBufferSizes(uint flags, out uint numPaths, out uint numModes);
+    [DllImport("user32.dll")] static extern int QueryDisplayConfig(uint flags, ref uint numPaths, [Out] PATH_INFO[] paths, ref uint numModes, [Out] MODE_INFO[] modes, IntPtr topology);
+    [DllImport("user32.dll")] static extern int DisplayConfigGetDeviceInfo(ref TARGET_NAME req);
+    [DllImport("user32.dll")] static extern int DisplayConfigGetDeviceInfo(ref DPI_GET req);
+    [DllImport("user32.dll")] static extern int DisplayConfigSetDeviceInfo(ref DPI_SET req);
+
+    const uint QDC_ONLY_ACTIVE_PATHS = 2;
+    const int GET_TARGET_NAME = 2, GET_DPI_SCALE = -3, SET_DPI_SCALE = -4;
+    static readonly int[] Steps = { 100, 125, 150, 175, 200, 225, 250, 300, 350, 400, 450, 500 };
+
+    // Sets the scale (%) of the monitor whose device path contains `match`. Returns the previous scale.
+    public static int Set(string match, int percent) {
+        uint np, nm;
+        if (GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, out np, out nm) != 0) throw new Exception("GetDisplayConfigBufferSizes failed");
+        var paths = new PATH_INFO[np]; var modes = new MODE_INFO[nm];
+        if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref np, paths, ref nm, modes, IntPtr.Zero) != 0) throw new Exception("QueryDisplayConfig failed");
+
+        for (int i = 0; i < np; i++) {
+            var name = new TARGET_NAME();
+            name.header.type = GET_TARGET_NAME; name.header.size = (uint)Marshal.SizeOf(name);
+            name.header.adapter = paths[i].tgtAdapter; name.header.id = paths[i].tgtId;
+            if (DisplayConfigGetDeviceInfo(ref name) != 0) continue;
+            if (name.devicePath.IndexOf(match, StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+            var get = new DPI_GET();
+            get.header.type = GET_DPI_SCALE; get.header.size = (uint)Marshal.SizeOf(get);
+            get.header.adapter = paths[i].srcAdapter; get.header.id = paths[i].srcId;
+            if (DisplayConfigGetDeviceInfo(ref get) != 0) throw new Exception("GET_DPI_SCALE failed");
+
+            // Values are relative to the recommended scale, which sits at index -min
+            int rec = -get.min;
+            int target = Array.IndexOf(Steps, percent);
+            if (target < 0) throw new Exception("Unsupported scale: " + percent);
+            if (target - rec < get.min || target - rec > get.max)
+                throw new Exception("Scale " + percent + "% out of range " + Steps[rec + get.min] + "-" + Steps[rec + get.max] + "%");
+
+            var set = new DPI_SET();
+            set.header.type = SET_DPI_SCALE; set.header.size = (uint)Marshal.SizeOf(set);
+            set.header.adapter = paths[i].srcAdapter; set.header.id = paths[i].srcId;
+            set.scaleRel = target - rec;
+            if (DisplayConfigSetDeviceInfo(ref set) != 0) throw new Exception("SET_DPI_SCALE failed");
+            return Steps[rec + get.cur];
+        }
+        throw new Exception("Monitor not found: " + match);
+    }
+}
+'@
+
+$changed = $false
+foreach ($l in $layout) {
+    $dev = [Display]::Find($l.Match)
+    if (-not $dev) { Write-Host "==> display: $($l.Name) not connected, skip"; continue }
+    $size = [Display]::Stage($dev, $l.X, $l.Y, $l.Orientation)
+    Write-Host "==> display: $($l.Name) -> $size at ($($l.X),$($l.Y))"
+    $changed = $true
+}
+if ($changed) { [Display]::Commit() }
+
+foreach ($l in $layout) {
+    if (-not [Display]::Find($l.Match)) { continue }
+    $prev = [DpiScale]::Set($l.Match, $l.Scale)
+    Write-Host "==> display: $($l.Name) scale $prev% -> $($l.Scale)%"
+}
+{{- end }}

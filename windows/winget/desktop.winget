@@ -2,4 +2,12 @@
 # Applied only when machine = "desktop".
 properties:
   configurationVersion: 0.2.0
-  resources: []
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: littlebigmouse
+      directives:
+        description: Little Big Mouse (physical-size aware cursor across monitors)
+        allowPrerelease: true
+      settings:
+        id: mgth.LittleBigMouse
+        source: winget
