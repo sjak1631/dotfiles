@@ -3,6 +3,7 @@
 {{- $hidpi := promptBoolOnce . "hidpi" "HiDPI display" false -}}
 {{- $gitName := promptStringOnce . "gitName" "Git user.name" -}}
 {{- $gitEmail := promptStringOnce . "gitEmail" "Git user.email (GitHub noreply address recommended)" -}}
+{{- $wslLocation := promptStringOnce . "wslLocation" "Folder for the NixOS WSL distro, e.g. on a dedicated drive (empty = WSL's default)" "" -}}
 
 [data]
   machine = {{ $machine | quote }}
@@ -10,6 +11,7 @@
   hidpi = {{ $hidpi }}
   gitName = {{ $gitName | quote }}
   gitEmail = {{ $gitEmail | quote }}
+  wslLocation = {{ $wslLocation | quote }}
 
 [interpreters.ps1]
   command = "powershell"

@@ -6,9 +6,12 @@ $ErrorActionPreference = 'Stop'
 #   2. no "NixOS" distro        -> import the latest NixOS-WSL release (nixos.wsl)
 #   3. nix/ changed since the last successful rebuild -> nixos-rebuild from the local source
 #      (the first time it also switches the default user from "nixos" to the configured one)
-$hash = '{{ range list "flake.nix" "flake.lock" "configuration.nix" "home.nix" }}{{ $p := joinPath $.chezmoi.workingTree "nix" . }}{{ if stat $p }}{{ include $p | sha256sum }}{{ end }}{{ end }}'
+$hash = '{{ range list "flake.nix" "flake.lock" "configuration.nix" "home.nix" "yazi/yazi.toml" }}{{ $p := joinPath $.chezmoi.workingTree "nix" . }}{{ if stat $p }}{{ include $p | sha256sum }}{{ end }}{{ end }}'
 $flakeDir = '{{ joinPath .chezmoi.workingTree "nix" }}'
 $distro = 'NixOS'
+# Where a fresh import goes (per-machine chezmoi data; empty = WSL's default). An existing distro
+# can be moved with `wsl --shutdown; wsl --manage NixOS --move <folder>`
+$location = '{{ if hasKey . "wslLocation" }}{{ .wslLocation }}{{ end }}'
 $stateFile = Join-Path $env:LOCALAPPDATA 'dotfiles\nixos-wsl.hash'
 
 function Invoke-Wsl([string[]]$arguments) {
@@ -44,7 +47,12 @@ if ($distros -notcontains $distro) {
     $ProgressPreference = 'SilentlyContinue'  # Invoke-WebRequest is very slow with the progress bar
     Invoke-WebRequest 'https://github.com/nix-community/NixOS-WSL/releases/latest/download/nixos.wsl' -OutFile $file -UseBasicParsing
     Write-Host '==> importing NixOS-WSL'
-    $r = Invoke-Wsl @('--install', '--from-file', $file, '--no-launch')
+    $installArgs = @('--install', '--from-file', $file, '--no-launch')
+    if ($location) {
+        New-Item -ItemType Directory -Force $location | Out-Null
+        $installArgs += @('--location', $location)
+    }
+    $r = Invoke-Wsl $installArgs
     if ($r.ExitCode -ne 0) {
         if ($r.Output -match 'WSL_E_WSL_OPTIONAL_COMPONENT_REQUIRED|HCS_E_HYPERV_NOT_INSTALLED|0x80370102|reboot') {
             Write-Host '==> WSL needs a reboot first. Reboot, then run chezmoi apply again.'

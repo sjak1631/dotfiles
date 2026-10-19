@@ -137,6 +137,80 @@ properties:
         id: DEVCOM.JetBrainsMonoNerdFont
         source: winget
 
+    # --- Terminal file manager (yazi) and the tools it uses for previews/search ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: yazi
+      directives:
+        description: yazi
+        allowPrerelease: true
+      settings:
+        id: sxyazi.yazi
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: 7zip
+      directives:
+        description: 7-Zip (archive previews)
+        allowPrerelease: true
+      settings:
+        id: 7zip.7zip
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: ffmpeg
+      directives:
+        description: FFmpeg (video thumbnails)
+        allowPrerelease: true
+      settings:
+        id: Gyan.FFmpeg
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: poppler
+      directives:
+        description: Poppler (PDF previews)
+        allowPrerelease: true
+      settings:
+        id: oschwartz10612.Poppler
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: jq
+      directives:
+        description: jq (JSON previews)
+        allowPrerelease: true
+      settings:
+        id: jqlang.jq
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: fd
+      directives:
+        description: fd
+        allowPrerelease: true
+      settings:
+        id: sharkdp.fd
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: ripgrep
+      directives:
+        description: ripgrep
+        allowPrerelease: true
+      settings:
+        id: BurntSushi.ripgrep.MSVC
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: fzf
+      directives:
+        description: fzf
+        allowPrerelease: true
+      settings:
+        id: junegunn.fzf
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: zoxide
+      directives:
+        description: zoxide
+        allowPrerelease: true
+      settings:
+        id: ajeetdsouza.zoxide
+        source: winget
+
     # --- Windows settings ---
     - resource: Microsoft.Windows.Developer/EnableDarkMode
       directives:

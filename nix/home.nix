@@ -55,6 +55,13 @@ in
     config.theme = "gruvbox-dark";
   };
   programs.btop.enable = true;
+  # Terminal file manager (nixpkgs' yazi comes wrapped with its preview tools); `y` cds to
+  # where it was left. Settings are shared with Windows
+  programs.yazi = {
+    enable = true;
+    shellWrapperName = "y";
+    settings = builtins.fromTOML (builtins.readFile ./yazi/yazi.toml);
+  };
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
