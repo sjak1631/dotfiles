@@ -25,6 +25,8 @@ iex "&{$(irm 'https://get.chezmoi.io/ps1')} -- init --apply sjak1631"
 
 途中で UAC の確認が何度か出る (winget の一部パッケージ、WSL、Interception ドライバー)。WSL と Interception は **再起動後にもう一度 `chezmoi apply`** で続きが進む。
 
+新しいノート PC に入れるときの手順と確認リスト: [docs/laptop-setup.md](docs/laptop-setup.md)
+
 一部は初回起動が必要: Spotify (起動してログイン → apply で Spicetify が当たる)、Vesktop / Zen (初回起動で設定ファイルができる → apply)。
 
 ## 日常の操作
@@ -116,7 +118,7 @@ kanata は Interception ドライバー版を使う。フック版ではキー�
 | 対象 | 内容 |
 |---|---|
 | 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
-| desktop | Little Big Mouse, Steam, Epic Games Launcher |
+| desktop | Little Big Mouse, Steam, HoYoPlay (winget に無いので専用スクリプト、`D:\HoYoPlay` に入れる) |
 | laptop | (なし) |
 
 アプリごとの設定:
@@ -133,7 +135,7 @@ kanata は Interception ドライバー版を使う。フック版ではキー�
 | スクリプト | 内容 |
 |---|---|
 | `05-quiet-windows` | おすすめ・ヒント・「スタートアップに登録されました」の通知を無効化 |
-| `06-startup-apps` | OneDrive / Slack / Steam / Epic / Spotify / Bitwarden / Edge の自動起動を無効化 |
+| `06-startup-apps` | OneDrive / Slack / Steam / HoYoPlay / Spotify / Bitwarden / Edge の自動起動を無効化 |
 | `07-explorer` | デスクトップアイコン非表示、サブモニターのタスクバー無効、スナップ無効 (GlazeWM が配置するため) |
 | `30-display` | (desktop) モニターの配置・向き・拡大率 |
 | `40-littlebigmouse` | (desktop) 物理サイズに合わせたカーソル移動 |
