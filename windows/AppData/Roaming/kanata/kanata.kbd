@@ -1,0 +1,19 @@
+;; CapsLock: tap = toggle IME (Alt+` on US layout + MS-IME), hold = Ctrl
+;; Emergency exit: LCtrl + Space + Esc
+
+(defcfg
+  process-unmapped-keys yes
+)
+
+(defsrc
+  caps
+)
+
+(defalias
+  ;; tap-hold-press: becomes Ctrl as soon as another key is pressed (fast Ctrl+C etc.)
+  cap (tap-hold-press 200 200 A-grv lctl)
+)
+
+(deflayer base
+  @cap
+)

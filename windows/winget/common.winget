@@ -37,6 +37,72 @@ properties:
         id: Gitleaks.Gitleaks
         source: winget
 
+    # --- Apps ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: zen
+      directives:
+        description: Zen Browser
+        allowPrerelease: true
+      settings:
+        id: Zen-Team.Zen-Browser
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: bitwarden
+      directives:
+        description: Bitwarden
+        allowPrerelease: true
+      settings:
+        id: Bitwarden.Bitwarden
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: slack
+      directives:
+        description: Slack
+        allowPrerelease: true
+      settings:
+        id: SlackTechnologies.Slack
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vesktop
+      directives:
+        description: Vesktop
+        allowPrerelease: true
+      settings:
+        id: Vencord.Vesktop
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: steam
+      directives:
+        description: Steam
+        allowPrerelease: true
+      settings:
+        id: Valve.Steam
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: spotify
+      directives:
+        description: Spotify
+        allowPrerelease: true
+      settings:
+        id: Spotify.Spotify
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vscode
+      directives:
+        description: Visual Studio Code
+        allowPrerelease: true
+      settings:
+        id: Microsoft.VisualStudioCode
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: kanata
+      directives:
+        description: kanata (key remapper)
+        allowPrerelease: true
+      settings:
+        id: jtroo.kanata_gui
+        source: winget
+
     # --- Windows settings ---
     - resource: Microsoft.Windows.Developer/EnableDarkMode
       directives:

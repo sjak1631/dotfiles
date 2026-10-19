@@ -1,0 +1,32 @@
+$ErrorActionPreference = 'Stop'
+
+# Re-runs (and restarts kanata) when the config changes:
+# kanata.kbd: {{ include "AppData/Roaming/kanata/kanata.kbd" | sha256sum }}
+
+$exeName = 'kanata_windows_gui_winIOv2_x64'
+$pkgDir = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages') -Directory -Filter 'jtroo.kanata_gui_*' |
+    Select-Object -First 1
+if (-not $pkgDir) {
+    Write-Host '==> skip kanata (not installed)'
+    exit 0
+}
+$exe = Join-Path $pkgDir.FullName "$exeName.exe"
+
+# Validate config before (re)starting
+$cfg = Join-Path $env:APPDATA 'kanata\kanata.kbd'
+& (Join-Path $pkgDir.FullName 'kanata_windows_tty_winIOv2_x64.exe') --cfg $cfg --check --quiet
+if ($LASTEXITCODE -ne 0) { throw "kanata config check failed: $cfg" }
+
+# Start at logon
+$lnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'kanata.lnk'
+$shell = New-Object -ComObject WScript.Shell
+$sc = $shell.CreateShortcut($lnk)
+$sc.TargetPath = $exe
+$sc.Arguments = "--cfg `"$cfg`""
+$sc.WorkingDirectory = Split-Path $cfg
+$sc.Save()
+
+# Restart now to pick up the new config
+Get-Process $exeName -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Process $lnk
+Write-Host '==> kanata (re)started'
