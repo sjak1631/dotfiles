@@ -28,5 +28,14 @@ $sc.Save()
 
 # Restart now to pick up the new config
 Get-Process $exeName -ErrorAction SilentlyContinue | Stop-Process -Force
+
+# CapsLock can't be turned off by the user once kanata owns the key, so make sure it starts off
+if ([Console]::CapsLock) {
+    Add-Type -Namespace Win32 -Name Kbd -MemberDefinition '[DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, System.UIntPtr extra);'
+    [Win32.Kbd]::keybd_event(0x14, 0x3A, 0, [UIntPtr]::Zero)  # VK_CAPITAL down
+    [Win32.Kbd]::keybd_event(0x14, 0x3A, 2, [UIntPtr]::Zero)  # up
+    Write-Host '==> CapsLock turned off'
+}
+
 Start-Process $lnk
 Write-Host '==> kanata (re)started'
