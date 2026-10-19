@@ -1,31 +1,28 @@
 ;; CapsLock: tap = toggle IME (Alt+` on US layout + MS-IME), hold = Ctrl
 ;; Shift + CapsLock: real CapsLock
-;; Left Win: tap = Flow Launcher (its hotkey is Ctrl+Alt+Space), hold = Win (Win+E etc. still work)
-;; Win + W: wallpaper picker. Windows reserves Win+W (Widgets), so W is sent as Ctrl+Alt+W while
-;;          Win stays held: Flow Launcher's hotkey is Win+Ctrl+Alt+W. Keeping Win down (instead of
-;;          releasing it) means Windows saw another key with it and won't open Start on release.
+;; Left Win: tapping it alone does nothing (no Start menu); Win + key works as usual
 ;; Emergency exit: LCtrl + Space + Esc
 
 (defcfg
   process-unmapped-keys yes
+  ;; No toasts: key-state resyncs (e.g. after Win+L locks the screen) are harmless
+  notify-error no
+  notify-cfg-reload no
 )
 
 (defsrc
-  caps lmet w
+  caps lmet
 )
 
 (defalias
-  ;; tap-hold-press: becomes the modifier as soon as another key is pressed (fast Ctrl+C etc.)
+  ;; tap-hold-press: becomes Ctrl as soon as another key is pressed (fast Ctrl+C etc.)
   imectl (tap-hold-press 200 200 A-grv lctl)
   cap (fork @imectl caps (lsft rsft))
-  win (tap-hold-press 200 200 C-A-spc (multi lmet (layer-while-held win)))
+  ;; Win is only sent once another key is pressed with it; a tap sends nothing.
+  ;; The 10s hold time keeps a slow lone press from turning into Win (and opening Start).
+  win (tap-hold-press 10000 10000 XX lmet)
 )
 
 (deflayer base
-  @cap @win w
-)
-
-;; While Win is held
-(deflayer win
-  _ _ C-A-w
+  @cap @win
 )

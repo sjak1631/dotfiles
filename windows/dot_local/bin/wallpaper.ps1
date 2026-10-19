@@ -3,7 +3,7 @@
 # images, portrait monitors through portrait ones (or landscape ones if there are none).
 #   wallpaper.ps1 next | prev | random     - switch
 #   wallpaper.ps1 apply                    - re-apply the current selection (also updates the lock screen)
-# Picking from a list: Win+W (Flow Launcher plugin, AppData/Roaming/FlowLauncher/Plugins/Wallpaper).
+# Picking from a list: type "wp" in Flow Launcher (plugin in AppData/Roaming/FlowLauncher/Plugins/Wallpaper).
 #   wallpaper.ps1 set <landscape> [<portrait>]  - set specific files (name in the folder, or a full path)
 # The current selection is per machine state in %LOCALAPPDATA%\dotfiles\wallpaper.json.
 param(

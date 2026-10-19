@@ -5,9 +5,9 @@
 $ErrorActionPreference = 'Stop'
 
 # Sets the theme's wallpaper (rice.yaml `wallpapers`) when the theme or that selection changes.
-# Day-to-day switching is wallpaper.ps1 next/prev/random (Win+W, see GlazeWM config).
+# Day-to-day switching: "wp" in Flow Launcher, or wallpaper.ps1 next/prev/random.
+# Only the selection is hashed: re-running would overwrite the wallpaper picked since then.
 # {{ list $landscape $portrait | toJson }}
-# wallpaper.ps1: {{ include "dot_local/bin/wallpaper.ps1" | sha256sum }}
 
 # Lock screen without Windows Spotlight and its tips
 $cdm = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'

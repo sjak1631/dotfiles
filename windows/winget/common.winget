@@ -113,6 +113,14 @@ properties:
         id: glzr-io.glazewm
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: wezterm
+      directives:
+        description: WezTerm (stable; the nightly package fails winget's hash check)
+        allowPrerelease: true
+      settings:
+        id: wez.wezterm
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: flowlauncher
       directives:
         description: Flow Launcher (opened by a Win key tap, see kanata.kbd)
