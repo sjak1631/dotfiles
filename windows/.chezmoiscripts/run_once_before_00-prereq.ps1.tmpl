@@ -1,0 +1,16 @@
+$ErrorActionPreference = 'Stop'
+
+# Allow local scripts (PowerShell profile etc.)
+if ((Get-ExecutionPolicy -Scope CurrentUser) -notin 'RemoteSigned', 'Unrestricted', 'Bypass') {
+    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+}
+
+# Enable `winget configure` (admin setting, needs elevation)
+winget configure validate -f '{{ .chezmoi.sourceDir }}/winget/common.winget' --disable-interactivity *> $null
+if ($LASTEXITCODE -eq -1978335127) {  # 0x8A150069: configuration is not enabled
+    Write-Host '==> Enabling winget configure (UAC prompt)'
+    Start-Process winget -ArgumentList 'configure', '--enable' -Verb RunAs -Wait
+}
+
+# Enable the gitleaks pre-commit hook for this clone
+git -C '{{ .chezmoi.workingTree }}' config core.hooksPath .githooks

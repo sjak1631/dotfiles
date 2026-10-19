@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+# Applied on every machine.
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    # --- Bootstrap tools ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: git
+      directives:
+        description: Git
+        allowPrerelease: true
+      settings:
+        id: Git.Git
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: gh
+      directives:
+        description: GitHub CLI
+        allowPrerelease: true
+      settings:
+        id: GitHub.cli
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: chezmoi
+      directives:
+        description: chezmoi
+        allowPrerelease: true
+      settings:
+        id: twpayne.chezmoi
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: gitleaks
+      directives:
+        description: gitleaks
+        allowPrerelease: true
+      settings:
+        id: Gitleaks.Gitleaks
+        source: winget
+
+    # --- Windows settings ---
+    - resource: Microsoft.Windows.Developer/EnableDarkMode
+      directives:
+        description: Dark mode
+        allowPrerelease: true
+      settings:
+        Ensure: Present
+        RestartExplorer: true
+    - resource: Microsoft.Windows.Developer/WindowsExplorer
+      directives:
+        description: Explorer - show file extensions and hidden files
+        allowPrerelease: true
+      settings:
+        FileExtensions: Show
+        HiddenFiles: Show
+        RestartExplorer: true

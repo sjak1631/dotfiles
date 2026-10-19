@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+# Applied only when machine = "laptop".
+properties:
+  configurationVersion: 0.2.0
+  resources: []

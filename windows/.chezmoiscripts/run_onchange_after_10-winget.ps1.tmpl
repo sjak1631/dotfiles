@@ -1,0 +1,17 @@
+$ErrorActionPreference = 'Stop'
+
+# Re-runs only when these files change:
+# common: {{ include "winget/common.winget" | sha256sum }}
+# {{ .machine }}: {{ include (printf "winget/%s.winget" .machine) | sha256sum }}
+
+$dir = '{{ .chezmoi.sourceDir }}/winget'
+foreach ($file in 'common.winget', '{{ .machine }}.winget') {
+    # winget rejects files with no resources
+    if (-not (Select-String -Path (Join-Path $dir $file) -Pattern '^\s*- resource:' -Quiet)) {
+        Write-Host "==> skip $file (no resources)"
+        continue
+    }
+    Write-Host "==> winget configure $file"
+    winget configure -f (Join-Path $dir $file) --accept-configuration-agreements --disable-interactivity
+    if ($LASTEXITCODE -ne 0) { throw "winget configure failed: $file (exit $LASTEXITCODE)" }
+}

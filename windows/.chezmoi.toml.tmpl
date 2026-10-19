@@ -1,0 +1,16 @@
+{{- /* Per-machine values. Answers are stored in ~/.config/chezmoi/chezmoi.toml, never in the repo. */ -}}
+{{- $machine := promptChoiceOnce . "machine" "Machine type" (list "desktop" "laptop") -}}
+{{- $hidpi := promptBoolOnce . "hidpi" "HiDPI display" false -}}
+{{- $gitName := promptStringOnce . "gitName" "Git user.name" -}}
+{{- $gitEmail := promptStringOnce . "gitEmail" "Git user.email (GitHub noreply address recommended)" -}}
+
+[data]
+  machine = {{ $machine | quote }}
+  battery = {{ eq $machine "laptop" }}
+  hidpi = {{ $hidpi }}
+  gitName = {{ $gitName | quote }}
+  gitEmail = {{ $gitEmail | quote }}
+
+[interpreters.ps1]
+  command = "powershell"
+  args = ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass"]
