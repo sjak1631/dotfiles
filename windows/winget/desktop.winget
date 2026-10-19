@@ -11,7 +11,7 @@ properties:
       settings:
         id: mgth.LittleBigMouse
         source: winget
-    # --- Games (desktop only) ---
+    # --- Games (desktop only; HoYoPlay isn't on winget: run_after_78-hoyoplay.ps1.tmpl) ---
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: steam
       directives:
@@ -19,12 +19,4 @@ properties:
         allowPrerelease: true
       settings:
         id: Valve.Steam
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: epicgames
-      directives:
-        description: Epic Games Launcher
-        allowPrerelease: true
-      settings:
-        id: EpicGames.EpicGamesLauncher
         source: winget

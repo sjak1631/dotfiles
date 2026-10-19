@@ -7,7 +7,7 @@ $unwanted = @(
     '^OneDrive$'
     '^com\.squirrel\.slack\.'
     '^Steam$'
-    '^EpicGamesLauncher$'
+    '^(HoYoPlay|HYP)'
     '^Spotify$'
     'Bitwarden'
     '^MicrosoftEdgeAutoLaunch_'

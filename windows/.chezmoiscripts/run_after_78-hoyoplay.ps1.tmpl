@@ -1,0 +1,30 @@
+{{- if eq .machine "desktop" -}}
+$ErrorActionPreference = 'Stop'
+
+# HoYoPlay (HoYoverse's game launcher), desktop only. Not on winget: download the latest installer
+# from the official link (the download button on hoyoplay.hoyoverse.com) and run it only if it
+# carries a valid COGNOSPHERE signature (the file changes with every release, so no fixed hash).
+# Runs on every apply; does nothing once HoYoPlay is installed (it updates itself).
+
+$uninstallKeys = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
+$installed = Get-ChildItem $uninstallKeys -ErrorAction SilentlyContinue | Get-ItemProperty | Where-Object DisplayName -eq 'HoYoPlay'
+if ($installed) { exit 0 }
+
+$tmp = Join-Path $env:TEMP "hoyoplay-$PID"
+New-Item -ItemType Directory -Force $tmp | Out-Null
+try {
+    $setup = Join-Path $tmp 'HoYoPlaySetup.exe'
+    Write-Host '==> downloading HoYoPlay'
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest 'https://sg-public-api.hoyoverse.com/event/download_porter/trace/hyp_global/hyphoyoverse/default' -OutFile $setup -UseBasicParsing -UserAgent 'Mozilla/5.0'
+    $sig = Get-AuthenticodeSignature $setup
+    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch '^CN=COGNOSPHERE PTE\. LTD\.,') {
+        throw "HoYoPlay installer: unexpected signature ($($sig.Status), $($sig.SignerCertificate.Subject))"
+    }
+    # Games are big: on the desktop HoYoPlay (and its games) go on the data SSD
+    Write-Host '==> HoYoPlay installer: set the install folder to D:\HoYoPlay, then Install (UAC prompt follows)'
+    Start-Process $setup -Wait
+} finally {
+    Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+}
+{{- end }}
