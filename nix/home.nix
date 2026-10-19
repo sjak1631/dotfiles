@@ -21,6 +21,20 @@ in
 
     nil
     nixfmt
+
+    # eye candy
+    fastfetch # system info + logo
+    cowsay
+    fortune
+    lolcat # rainbow output (fortune | cowsay | lolcat)
+    figlet # big ASCII text
+    toilet
+    cmatrix
+    cbonsai # growing bonsai (cbonsai -l)
+    pipes-rs # animated pipes
+    asciiquarium
+    tty-clock # tty-clock -c
+    sl
   ];
 
   programs.git = {

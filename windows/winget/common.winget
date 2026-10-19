@@ -203,6 +203,14 @@ properties:
         id: BurntSushi.ripgrep.MSVC
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: fastfetch
+      directives:
+        description: fastfetch (system info + logo)
+        allowPrerelease: true
+      settings:
+        id: Fastfetch-cli.Fastfetch
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: fzf
       directives:
         description: fzf
