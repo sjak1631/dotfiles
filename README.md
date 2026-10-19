@@ -28,7 +28,7 @@ windows/
   .chezmoiscripts/     # 前処理、winget configure
   winget/              # common.winget + <machine>.winget
   dot_*, AppData/ ...  # 配布するファイル
-nix/                   # flake (予定)
+nix/                   # NixOS-WSL の flake (apply 時に WSL へ反映、nix/README.md)
 ```
 
 ## 秘密情報

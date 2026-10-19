@@ -1,0 +1,86 @@
+$ErrorActionPreference = 'Stop'
+
+# WSL + NixOS-WSL, configured by this repo's nix/ flake (host "nixos-wsl").
+# Runs on every apply and only does what's needed:
+#   1. WSL itself not installed -> `wsl --install --no-distribution` (UAC; usually needs a reboot)
+#   2. no "NixOS" distro        -> import the latest NixOS-WSL release (nixos.wsl)
+#   3. nix/ changed since the last successful rebuild -> nixos-rebuild from the local source
+#      (the first time it also switches the default user from "nixos" to the configured one)
+$hash = '{{ range list "flake.nix" "flake.lock" "configuration.nix" "home.nix" }}{{ $p := joinPath $.chezmoi.workingTree "nix" . }}{{ if stat $p }}{{ include $p | sha256sum }}{{ end }}{{ end }}'
+$flakeDir = '{{ joinPath .chezmoi.workingTree "nix" }}'
+$distro = 'NixOS'
+$stateFile = Join-Path $env:LOCALAPPDATA 'dotfiles\nixos-wsl.hash'
+
+function Invoke-Wsl([string[]]$arguments) {
+    # wsl.exe's own messages are UTF-16; read them as such so they aren't garbled
+    # (and its stderr must not become a terminating error under -ErrorAction Stop in PowerShell 5.1)
+    $ErrorActionPreference = 'Continue'
+    $prev = [Console]::OutputEncoding
+    [Console]::OutputEncoding = [Text.Encoding]::Unicode
+    try { $out = & wsl.exe @arguments 2>&1 | Out-String } finally { [Console]::OutputEncoding = $prev }
+    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out.Trim() }
+}
+
+# Runs a command in the distro as root, output straight to the console (it's UTF-8, from Linux)
+function Invoke-NixOS([string]$command) {
+    & wsl.exe -d $distro --user root --cd / --exec /run/current-system/sw/bin/bash -lc $command
+    if ($LASTEXITCODE -ne 0) { throw "failed in ${distro}: $command" }
+}
+
+$status = Invoke-Wsl @('--status')
+if ($status.ExitCode -ne 0) {
+    Write-Host '==> WSL is not installed; installing it (UAC prompt)'
+    $p = Start-Process wsl.exe -ArgumentList '--install', '--no-distribution' -Verb RunAs -Wait -PassThru
+    Write-Host "==> wsl --install finished (exit $($p.ExitCode)). Reboot, then run 'chezmoi apply' again to set up NixOS."
+    exit 0
+}
+
+$distros = (Invoke-Wsl @('--list', '--quiet')).Output -split "`r?`n" | ForEach-Object { $_.Trim([char]0, ' ') } | Where-Object { $_ }
+if ($distros -notcontains $distro) {
+    $dir = Join-Path $env:TEMP 'nixos-wsl'
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $file = Join-Path $dir 'nixos.wsl'
+    Write-Host '==> downloading NixOS-WSL (latest release)'
+    $ProgressPreference = 'SilentlyContinue'  # Invoke-WebRequest is very slow with the progress bar
+    Invoke-WebRequest 'https://github.com/nix-community/NixOS-WSL/releases/latest/download/nixos.wsl' -OutFile $file -UseBasicParsing
+    Write-Host '==> importing NixOS-WSL'
+    $r = Invoke-Wsl @('--install', '--from-file', $file, '--no-launch')
+    if ($r.ExitCode -ne 0) {
+        if ($r.Output -match 'WSL_E_WSL_OPTIONAL_COMPONENT_REQUIRED|HCS_E_HYPERV_NOT_INSTALLED|0x80370102|reboot') {
+            Write-Host '==> WSL needs a reboot first. Reboot, then run chezmoi apply again.'
+            exit 0
+        }
+        throw "wsl --install --from-file failed: $($r.Output)"
+    }
+    Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+    Invoke-Wsl @('--set-default', $distro) | Out-Null
+    Remove-Item $stateFile -ErrorAction SilentlyContinue
+}
+
+$last = if (Test-Path $stateFile) { (Get-Content $stateFile -Raw).Trim() } else { '' }
+if ($last -eq $hash) { exit 0 }
+
+# C:/Users/... -> /mnt/c/Users/... (NixOS-WSL mounts drives under /mnt)
+$flake = 'path:/mnt/' + $flakeDir.Substring(0, 1).ToLower() + $flakeDir.Substring(2).Replace('\', '/') + '#nixos-wsl'
+$env:WSLENV = ''  # keep Windows env vars out of the build
+$nixConfig = "NIX_CONFIG='experimental-features = nix-command flakes'"
+
+# The configured user doesn't exist yet on a fresh import: NixOS-WSL can only switch the default
+# user at boot (`boot`, then restart the distro once as root)
+$user = 'sjak1631'
+$fresh = (Invoke-Wsl @('-d', $distro, '--user', 'root', '--exec', '/run/current-system/sw/bin/id', '-u', $user)).ExitCode -ne 0
+
+if ($fresh) {
+    Write-Host "==> NixOS-WSL: first build from $flake (takes a while)"
+    Invoke-NixOS "$nixConfig nixos-rebuild boot --flake '$flake'"
+    Invoke-Wsl @('--terminate', $distro) | Out-Null
+    Invoke-Wsl @('-d', $distro, '--user', 'root', '--exec', '/run/current-system/sw/bin/true') | Out-Null
+    Invoke-Wsl @('--terminate', $distro) | Out-Null
+} else {
+    Write-Host "==> NixOS-WSL: nixos-rebuild switch ($flake)"
+    Invoke-NixOS "$nixConfig nixos-rebuild switch --flake '$flake'"
+}
+
+New-Item -ItemType Directory -Force (Split-Path $stateFile) | Out-Null
+Set-Content $stateFile $hash -Encoding ascii
+Write-Host '==> NixOS-WSL up to date'
