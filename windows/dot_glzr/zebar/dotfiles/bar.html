@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Nerd Font icon classes (nf-*), see https://www.nerdfonts.com/cheat-sheet -->
+    <link rel="stylesheet" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" href="./vars.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="bar">
+      <div class="island left">
+        <div id="workspaces" class="workspaces"></div>
+        <div id="modes" class="modes"></div>
+      </div>
+      <div class="island center wide-only">
+        <span id="title" class="title"></span>
+      </div>
+      <div class="island right">
+        <span id="media" class="item media wide-only" hidden></span>
+        <span id="cpu" class="item wide-only"></span>
+        <span id="memory" class="item wide-only"></span>
+        <span id="network" class="item wide-only"></span>
+        <span id="battery" class="item" hidden></span>
+        <span id="date" class="item clock"></span>
+      </div>
+    </div>
+    <script type="module" src="./bar.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+$ErrorActionPreference = 'Stop'
+
+# Re-runs (reload GlazeWM, restart Zebar) when the rice changes:
+# rice: {{ dict "rice" .rice "style" (index .styles .rice.style) "theme" (index .themes .rice.theme) | toJson | sha256sum }}
+# glazewm: {{ include "dot_glzr/glazewm/config.yaml.tmpl" | sha256sum }}
+# zebar: {{ list (include "dot_glzr/zebar/settings.json") (include "dot_glzr/zebar/dotfiles/zpack.json.tmpl") (include "dot_glzr/zebar/dotfiles/vars.css.tmpl") (include "dot_glzr/zebar/dotfiles/bar.html") (include "dot_glzr/zebar/dotfiles/bar.js") (include "dot_glzr/zebar/dotfiles/style.css") | join "" | sha256sum }}
+
+$dir = Join-Path $env:ProgramFiles 'glzr.io'
+$wm = Join-Path $dir 'GlazeWM\glazewm.exe'
+$cli = Join-Path $dir 'GlazeWM\cli\glazewm.exe'
+$zebar = Join-Path $dir 'Zebar\zebar.exe'
+if (-not (Test-Path $wm)) { Write-Host '==> skip GlazeWM (not installed)'; exit 0 }
+
+# Start at logon (GlazeWM starts Zebar via startup_commands)
+$lnk = Join-Path ([Environment]::GetFolderPath('Startup')) 'GlazeWM.lnk'
+$sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+$sc.TargetPath = $wm
+$sc.WorkingDirectory = Split-Path $wm
+$sc.Save()
+
+if (Get-Process glazewm -ErrorAction SilentlyContinue) {
+    & $cli command wm-reload-config | Out-Null
+    Get-Process zebar -ErrorAction SilentlyContinue | Stop-Process -Force
+    Start-Sleep 1
+    Start-Process $zebar
+    Write-Host '==> GlazeWM config reloaded, Zebar restarted'
+} else {
+    Start-Process $wm
+    Write-Host '==> GlazeWM started'
+}

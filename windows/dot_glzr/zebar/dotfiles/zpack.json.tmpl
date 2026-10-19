@@ -1,0 +1,41 @@
+{{- $s := index .styles .rice.style -}}
+{{- define "preset" -}}
+        {
+          "name": "{{ .name }}",
+          "anchor": "top_left",
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "width": "100%",
+          "height": "{{ .height }}px",
+          "monitorSelection": { "type": "{{ .name }}" },
+          "dockToEdge": { "enabled": true, "edge": "top", "windowMargin": "0px" }
+        }
+{{- end -}}
+{
+  "$schema": "https://github.com/glzr-io/zebar/raw/v3.3.1/resources/zpack-schema.json",
+  "name": "dotfiles",
+  "version": "0.1.0",
+  "description": "Status bar for GlazeWM, managed by chezmoi (sjak1631/dotfiles).",
+  "tags": ["topbar", "glazewm"],
+  "previewImages": [],
+  "repositoryUrl": "https://github.com/sjak1631/dotfiles",
+  "widgets": [
+    {
+      "name": "bar",
+      "htmlPath": "./bar.html",
+      "zOrder": "normal",
+      "shownInTaskbar": false,
+      "focused": false,
+      "resizable": false,
+      "transparent": true,
+      "includeFiles": ["*.html", "*.css", "*.js"],
+      "caching": { "defaultDuration": 604800, "rules": [] },
+      "privileges": { "shellCommands": [] },
+      "presets": [
+{{ template "preset" (dict "name" "primary" "height" (add $s.bar_margin $s.bar_height)) }},
+{{ template "preset" (dict "name" "secondary" "height" (add $s.bar_margin $s.bar_height)) }}
+      ]
+      {{- /* settings.json only starts "primary"; "secondary" is kept for a bar on the side monitor */}}
+    }
+  ]
+}

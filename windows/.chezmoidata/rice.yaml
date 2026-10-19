@@ -1,0 +1,119 @@
+# Look & feel shared by GlazeWM, Zebar (and later WezTerm, starship).
+# Switch by editing `rice.theme` / `rice.style`, then `chezmoi apply`.
+rice:
+  theme: gruvbox
+  style: floating
+  font: JetBrainsMono Nerd Font
+
+# Layout parameters (px, scaled with DPI).
+#   bar_margin: space above the bar. Zebar widget height = bar_margin + bar_height
+#   corner:     GlazeWM corner style (square | rounded | small_rounded)
+styles:
+  floating:
+    gap: 12
+    outer: 12
+    bar_height: 32
+    bar_margin: 10
+    radius: 999
+    corner: rounded
+  flat:
+    gap: 6
+    outer: 6
+    bar_height: 28
+    bar_margin: 0
+    radius: 4
+    corner: square
+
+# Every theme defines the same keys.
+themes:
+  gruvbox:
+    bg: '#282828'
+    bg_dark: '#1d2021'
+    crust: '#141617'
+    surface: '#3c3836'
+    surface2: '#504945'
+    fg: '#ebdbb2'
+    muted: '#928374'
+    accent: '#fabd2f'
+    accent2: '#8ec07c'
+    green: '#b8bb26'
+    yellow: '#fe8019'
+    red: '#fb4934'
+  catppuccin:
+    bg: '#1e1e2e'
+    bg_dark: '#181825'
+    crust: '#11111b'
+    surface: '#313244'
+    surface2: '#45475a'
+    fg: '#cdd6f4'
+    muted: '#7f849c'
+    accent: '#cba6f7'
+    accent2: '#89b4fa'
+    green: '#a6e3a1'
+    yellow: '#f9e2af'
+    red: '#f38ba8'
+  tokyonight:
+    bg: '#1a1b26'
+    bg_dark: '#16161e'
+    crust: '#101014'
+    surface: '#292e42'
+    surface2: '#3b4261'
+    fg: '#c0caf5'
+    muted: '#565f89'
+    accent: '#7aa2f7'
+    accent2: '#bb9af7'
+    green: '#9ece6a'
+    yellow: '#e0af68'
+    red: '#f7768e'
+  rosepine:
+    bg: '#191724'
+    bg_dark: '#16141f'
+    crust: '#110f18'
+    surface: '#1f1d2e'
+    surface2: '#26233a'
+    fg: '#e0def4'
+    muted: '#6e6a86'
+    accent: '#ebbcba'
+    accent2: '#c4a7e7'
+    green: '#9ccfd8'
+    yellow: '#f6c177'
+    red: '#eb6f92'
+  nord:
+    bg: '#2e3440'
+    bg_dark: '#272c36'
+    crust: '#242933'
+    surface: '#3b4252'
+    surface2: '#434c5e'
+    fg: '#eceff4'
+    muted: '#616e88'
+    accent: '#88c0d0'
+    accent2: '#81a1c1'
+    green: '#a3be8c'
+    yellow: '#ebcb8b'
+    red: '#bf616a'
+  everforest:
+    bg: '#2d353b'
+    bg_dark: '#232a2e'
+    crust: '#1e2326'
+    surface: '#343f44'
+    surface2: '#3d484d'
+    fg: '#d3c6aa'
+    muted: '#859289'
+    accent: '#a7c080'
+    accent2: '#7fbbb3'
+    green: '#83c092'
+    yellow: '#dbbc7f'
+    red: '#e67e80'
+  kanagawa:
+    bg: '#1f1f28'
+    bg_dark: '#16161d'
+    crust: '#121218'
+    surface: '#2a2a37'
+    surface2: '#363646'
+    fg: '#dcd7ba'
+    muted: '#727169'
+    accent: '#7e9cd8'
+    accent2: '#957fb8'
+    green: '#98bb6c'
+    yellow: '#e6c384'
+    red: '#e46876'

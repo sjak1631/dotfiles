@@ -1,0 +1,96 @@
+/* Colors and sizes come from vars.css (generated from rice.yaml). */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--fg);
+  user-select: none;
+  cursor: default;
+}
+
+[hidden] { display: none !important; }
+
+i.nf { color: var(--accent2); margin-right: 6px; font-size: 13px; }
+
+.bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--gap);
+  height: 100%;
+  padding: var(--bar-margin) var(--outer) 0;
+}
+
+.island {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--bar-height);
+  min-width: 0;
+}
+.left { justify-self: start; }
+.center { justify-self: center; max-width: 40vw; }
+.right { justify-self: end; gap: 14px; }
+
+/* ---- floating: each group is its own pill ---- */
+.style-floating .island {
+  background: var(--bg);
+  border: 1px solid var(--surface);
+  border-radius: var(--radius);
+  padding: 0 12px;
+}
+.style-floating .left { padding: 0 4px; }
+.style-floating .center:empty,
+.style-floating .center:has(.title:empty) { visibility: hidden; }
+
+/* ---- flat: one solid strip ---- */
+.style-flat .bar {
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--surface);
+}
+
+/* Workspaces */
+.workspaces { display: flex; gap: 2px; }
+.workspace, .mode {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  height: calc(var(--bar-height) - 8px);
+  min-width: calc(var(--bar-height) - 8px);
+  padding: 0 8px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+}
+.workspace.displayed { color: var(--fg); }
+.workspace:hover { background: var(--surface); color: var(--fg); }
+.workspace.focused { background: var(--accent); color: var(--crust); font-weight: 600; }
+.mode { background: var(--red); color: var(--crust); font-weight: 600; }
+.modes:empty { display: none; }
+
+.title, .ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.title { color: var(--fg); }
+
+.item { display: flex; align-items: center; white-space: nowrap; min-width: 0; }
+/* Long track titles: cap the width and truncate with an ellipsis */
+.media { max-width: 220px; overflow: hidden; }
+.media .ellipsis { display: block; min-width: 0; }
+.clock { color: var(--fg); font-weight: 600; }
+.warn { color: var(--red); }
+
+/* Narrow (portrait) monitor: workspaces + clock only */
+.compact .wide-only { display: none !important; }
+.compact .bar { grid-template-columns: 1fr 1fr; }

@@ -103,6 +103,24 @@ properties:
         id: jtroo.kanata_gui
         source: winget
 
+    # --- Ricing ---
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: glazewm
+      directives:
+        description: GlazeWM (tiling WM, installer bundles Zebar)
+        allowPrerelease: true
+      settings:
+        id: glzr-io.glazewm
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: font-jetbrainsmono-nerd
+      directives:
+        description: JetBrainsMono Nerd Font
+        allowPrerelease: true
+      settings:
+        id: DEVCOM.JetBrainsMonoNerdFont
+        source: winget
+
     # --- Windows settings ---
     - resource: Microsoft.Windows.Developer/EnableDarkMode
       directives:
