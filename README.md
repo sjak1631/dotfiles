@@ -72,7 +72,7 @@ rice:
 
 ### 壁紙
 
-画像は `~/Pictures/Wallpapers` に置く (横長・縦長を自動判別)。Flow Launcher で `wp` と打つと一覧から選べる。`wallpaper.ps1 next | prev | random` でも切り替えられる。ロック画面も横長の壁紙に追従する。
+画像は `~/Pictures/Wallpapers` に置く (横長・縦長を自動判別)。リポジトリの `windows/Pictures/Wallpapers` が apply で配られ、手元で足した画像はそのまま残る。Flow Launcher で `wp` と打つと一覧から選べる。`wallpaper.ps1 next | prev | random` でも切り替えられる。ロック画面も横長の壁紙に追従する。
 
 ## キー操作
 
@@ -173,6 +173,7 @@ windows/
   dot_config/             # WezTerm, yazi, PowerShell profile
   dot_local/bin/          # 補助スクリプト (taskbar, wallpaper, bluetooth, power, ...)
   AppData/Roaming/        # kanata, Flow Launcher, Spicetify, Vesktop
+  Pictures/Wallpapers/    # 壁紙 (~/Pictures/Wallpapers に配る)
 nix/                      # NixOS-WSL の flake
 ```
 

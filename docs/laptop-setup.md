@@ -33,7 +33,7 @@
 5. 手動でログイン・認証 (リポジトリには入らないもの)
    - Bitwarden、Zen (同期)、Slack、Vesktop、Zoom、VS Code (Settings Sync)
    - `gh auth login` (Windows 側と WSL 側の両方)
-6. 壁紙を `~/Pictures/Wallpapers` に入れる (任意)
+6. 壁紙はリポジトリから `~/Pictures/Wallpapers` に入る。追加分はそこへ直接置いてもよい
 
 ## 確認リスト
 
