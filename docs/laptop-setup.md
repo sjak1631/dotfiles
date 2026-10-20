@@ -7,7 +7,7 @@
 - [ ] Windows Update を済ませる (winget / App Installer が古いと `winget configure` が動かない)
 - [ ] 時間に余裕を見る: UAC の確認と再起動が 2 回ほど入る
 - [ ] ネットワークの確認: GitHub・winget・cache.nixos.org に届くこと (会社のネットワークやプロキシに注意)
-- [ ] キーボード配列を確認する: kanata の IME 切り替え (CapsLock → Alt+\`) は **US 配列**前提。JIS 配列なら要調整
+- [ ] キーボード配列を確認する: Windows は **US 配列**で使う (kanata の IME 切り替え CapsLock → Alt+\` が前提にしている)。内蔵が JIS 配列なら、外部キーボードがない間は kanata が JIS として扱う (`kbd-layout.ps1`)
 - [ ] 質問への答えを決めておく
 
 | 質問 | ノート PC での答え |

@@ -1,0 +1,24 @@
+{{ if eq .machine "laptop" -}}
+$ErrorActionPreference = 'Stop'
+
+# Touchpad: three-finger swipe left/right = previous/next GlazeWM workspace (alt+a / alt+s).
+# The values Settings > Bluetooth & devices > Touchpad > Advanced gestures writes; the page
+# isn't notified, so a value written here takes effect at the next sign-in.
+# *KeyParams = virtual key << 16 | modifiers (0x10 = Alt)
+$ptp = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\PrecisionTouchPad'
+$values = [ordered]@{
+    ThreeFingerSlideEnabled   = 0xffff      # 0xffff: custom (advanced gestures)
+    ThreeFingerLeft           = 0xffff      # custom shortcut
+    ThreeFingerRight          = 0xffff
+    ThreeFingerLeftKeyParams  = 0x00410010  # Alt+A
+    ThreeFingerRightKeyParams = 0x00530010  # Alt+S
+    ThreeFingerUp             = 2           # the advanced page's other defaults, as it saved them
+    ThreeFingerDown           = 0
+    ThreeFingerTapEnabled     = 0
+    FourFingerSlideEnabled    = 0
+}
+foreach ($name in $values.Keys) {
+    Set-ItemProperty $ptp -Name $name -Value $values[$name] -Type DWord
+}
+Write-Host '==> touchpad: three-finger swipe left/right = previous/next workspace'
+{{ end -}}

@@ -5,11 +5,12 @@ local c = rice.colors
 local config = wezterm.config_builder()
 
 -- ---- shell: WSL when it is installed, PowerShell otherwise ----
+-- default_prog is the local domain's shell, so `wezterm start --domain local` (GlazeWM's
+-- alt+shift+enter) opens PowerShell even when WSL is the default
+config.default_prog = { 'powershell.exe', '-NoLogo' }
 local wsl = wezterm.default_wsl_domains()
 if #wsl > 0 then
   config.default_domain = wsl[1].name
-else
-  config.default_prog = { 'powershell.exe', '-NoLogo' }
 end
 
 -- ---- colors ----

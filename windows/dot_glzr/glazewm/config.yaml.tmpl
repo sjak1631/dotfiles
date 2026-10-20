@@ -222,6 +222,9 @@ keybindings:
   # Terminal (full path: GlazeWM's PATH may predate the WezTerm install)
   - commands: ['shell-exec %ProgramFiles%/WezTerm/wezterm-gui.exe']
     bindings: ['alt+enter']
+  # PowerShell in WezTerm's local domain (alt+enter opens WSL)
+  - commands: ['shell-exec %ProgramFiles%/WezTerm/wezterm-gui.exe start --domain local']
+    bindings: ['alt+shift+enter']
 
   # File manager (Explorer for now; yazi lives in the terminal as `y`)
   - commands: ['shell-exec explorer.exe']

@@ -103,6 +103,14 @@ properties:
         id: Microsoft.VisualStudioCode
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: libreoffice
+      directives:
+        description: LibreOffice (Writer, Calc, Impress, Draw, Math, Base)
+        allowPrerelease: true
+      settings:
+        id: TheDocumentFoundation.LibreOffice
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: kanata
       directives:
         description: kanata (key remapper; the Interception build, see run_after_19-interception.ps1)

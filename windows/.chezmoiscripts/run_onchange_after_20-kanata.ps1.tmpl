@@ -41,5 +41,6 @@ if ([Console]::CapsLock) {
     Write-Host '==> CapsLock turned off'
 }
 
-Start-Process $exe -ArgumentList '--cfg', "`"$cfg`"" -WorkingDirectory (Split-Path $cfg)
+# --port: the logon task (run_onchange_after_80-autostart) passes the same arguments
+Start-Process $exe -ArgumentList '--cfg', "`"$cfg`"", '--port', '127.0.0.1:7313' -WorkingDirectory (Split-Path $cfg)
 Write-Host '==> kanata (re)started'

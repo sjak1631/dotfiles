@@ -41,13 +41,32 @@ $kanataDir = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packag
     Select-Object -First 1
 # Interception build (run_after_19-interception.ps1)
 $kanataExe = if ($kanataDir) { Join-Path $kanataDir.FullName 'kanata_windows_gui_wintercept_x64.exe' } else { '' }
-Register-LogonTask 'dotfiles-kanata' $kanataExe "--cfg `"$(Join-Path $env:APPDATA 'kanata\kanata.kbd')`"" 'Keyboard remapping'
+# --port: TCP server (localhost only) that kbd-layout.ps1 switches layers through
+Register-LogonTask 'dotfiles-kanata' $kanataExe "--cfg `"$(Join-Path $env:APPDATA 'kanata\kanata.kbd')`" --port 127.0.0.1:7313" 'Keyboard remapping'
+
+{{ if eq .machine "laptop" -}}
+# Laptop: kanata's JIS layer while no external keyboard is connected (kbd-layout.ps1)
+# kbd-layout.ps1: {{ include "dot_local/bin/kbd-layout.ps1" | sha256sum }}
+$kbdLayout = Join-Path $HOME '.local\bin\kbd-layout.ps1'
+Register-LogonTask 'dotfiles-kbd-layout' (Join-Path $env:SystemRoot 'System32\conhost.exe') `
+    "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$kbdLayout`"" 'Keyboard layout by connected keyboards'
+Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
+    Where-Object CommandLine -match '[\\/]kbd-layout\.ps1' |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-ScheduledTask -TaskName 'dotfiles-kbd-layout'
+{{ else -}}
+Unregister-ScheduledTask -TaskName 'dotfiles-kbd-layout' -Confirm:$false -ErrorAction SilentlyContinue
+{{ end -}}
 
 # GlazeWM goes through glazewm-start.cmd, which retries if it crashes right after logon
 # glazewm-start.cmd: {{ include "dot_local/bin/glazewm-start.cmd" | sha256sum }}
 if (Test-Path (Join-Path $env:ProgramFiles 'glzr.io\GlazeWM\glazewm.exe')) {
     $starter = Join-Path $HOME '.local\bin\glazewm-start.cmd'
-    $action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless cmd.exe /c `"$starter`"" -WorkingDirectory (Split-Path $starter)
+    # Full paths: right at logon conhost once failed to start a bare `cmd.exe` (0x80070003,
+    # path not found), and then nothing in glazewm-start.cmd runs, retries included
+    $system32 = Join-Path $env:SystemRoot 'System32'
+    $action = New-ScheduledTaskAction -Execute (Join-Path $system32 'conhost.exe') `
+        -Argument "--headless `"$(Join-Path $system32 'cmd.exe')`" /c `"$starter`"" -WorkingDirectory (Split-Path $starter)
     Register-ScheduledTask -TaskName 'dotfiles-glazewm' -Action $action -Trigger $trigger -Principal $principal `
         -Settings $settings -Description 'Tiling window manager (+ Zebar), restarted if it crashes at logon (sjak1631/dotfiles)' -Force | Out-Null
     Write-Host '==> logon task registered: dotfiles-glazewm'

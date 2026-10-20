@@ -85,6 +85,8 @@ rice:
 | `Alt+1`〜`9`, `Alt+0` | ワークスペース移動 (desktop: 1〜9 はメイン、0 はサブモニター) |
 | `Alt+Shift+1`〜`9`, `0` | ウィンドウをワークスペースへ送る |
 | `Alt+S` / `Alt+A` / `Alt+D` | 次 / 前 / 直前のワークスペース |
+| `Alt`+ホイール下 / 上 | 次 / 前のワークスペース (kanata が `Alt+S` / `Alt+A` に変換) |
+| 3 本指スワイプ右 / 左 | 次 / 前のワークスペース (ノート PC のタッチパッド) |
 | `Alt+Shift+A/F/D/S` | ワークスペースを左 / 右 / 上 / 下のモニターへ |
 | `Alt+U/P` / `Alt+O/I` | 幅 / 高さの調整 |
 | `Alt+R` | リサイズモード (HJKL、Esc で抜ける) |
@@ -93,6 +95,7 @@ rice:
 | `Alt+F` / `Alt+M` | フルスクリーン / 最小化 |
 | `Alt+Shift+Q` | ウィンドウを閉じる |
 | `Alt+Enter` | ターミナル (WezTerm → NixOS-WSL) |
+| `Alt+Shift+Enter` | ターミナル (WezTerm → PowerShell) |
 | `Alt+E` | エクスプローラー |
 | `Alt+Shift+R` / `Alt+Shift+W` | 設定の再読み込み / 再配置 |
 | `Alt+Shift+P` | GlazeWM を一時停止 |
@@ -111,13 +114,15 @@ rice:
 
 kanata は Interception ドライバー版を使う。フック版ではキーを離した信号を取りこぼして Ctrl が押しっぱなしになることがあったため。
 
+Windows の配列は常に US。ノート PC では外部キーボード (USB / Bluetooth) がつながっていない間だけ、kanata が内蔵キーボードを JIS 配列として扱う (刻印どおりの記号が出る、`半角/全角` で IME 切り替え)。外部キーボードをつなぐと数秒以内に US に戻る。切り替えは `~/.local/bin/kbd-layout.ps1` が kanata の TCP ポート (127.0.0.1:7313) 経由で行う。Windows 標準のキーボードごとの配列設定は、kanata がすべてのキーを 1 台のキーボードから送り直すため使えない。
+
 ## アプリ
 
 `windows/winget/*.winget` (WinGet Configuration) で入れる。
 
 | 対象 | 内容 |
 |---|---|
-| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
+| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, LibreOffice, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
 | desktop | Little Big Mouse, Steam, HoYoPlay (winget に無いので専用スクリプト、`D:\HoYoPlay` に入れる) |
 | laptop | (なし) |
 
@@ -137,10 +142,11 @@ kanata は Interception ドライバー版を使う。フック版ではキー�
 | `05-quiet-windows` | おすすめ・ヒント・「スタートアップに登録されました」の通知を無効化 |
 | `06-startup-apps` | OneDrive / Slack / Steam / HoYoPlay / Spotify / Bitwarden / Edge の自動起動を無効化 |
 | `07-explorer` | デスクトップアイコン非表示、サブモニターのタスクバー無効、スナップ無効 (GlazeWM が配置するため) |
+| `08-touchpad` | ノート PC: 3 本指スワイプ左 / 右で前 / 次のワークスペース |
 | `30-display` | (desktop) モニターの配置・向き・拡大率 |
 | `40-littlebigmouse` | (desktop) 物理サイズに合わせたカーソル移動 |
 | `72-cursor` | Bibata Modern カーソル (ユーザー単位、管理者不要) |
-| `80-autostart` | kanata / GlazeWM / Flow をログオンタスクで即起動 (Startup フォルダより早い) |
+| `80-autostart` | kanata / GlazeWM / Flow (ノート PC は配列切り替えも) をログオンタスクで即起動 (Startup フォルダより早い) |
 
 タスクバーは GlazeWM が動いている間だけ隠れ (`taskbar.ps1 watch`)、GlazeWM が終わると戻る。
 

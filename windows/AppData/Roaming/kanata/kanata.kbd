@@ -1,6 +1,9 @@
 ;; CapsLock: tap = toggle IME (Alt+` on US layout + MS-IME), hold = Ctrl
 ;; Shift + CapsLock: real CapsLock
 ;; Left Win: tapping it alone does nothing (no Start menu); Win + key works as usual
+;; Alt + wheel: previous / next GlazeWM workspace (sends the alt+a / alt+s bindings)
+;; jis layer: types a JIS keyboard's legends on the US layout Windows uses (laptop built-in
+;;   keyboard; kbd-layout.ps1 switches to it while no external keyboard is connected)
 ;; Emergency exit: LCtrl + Space + Esc
 
 (defcfg
@@ -8,10 +11,14 @@
   ;; No toasts: key-state resyncs (e.g. after Win+L locks the screen) are harmless
   notify-error no
   notify-cfg-reload no
+  ;; Read mouse buttons/wheel from every mouse (an empty exclude list); needed for mwu/mwd.
+  ;; Pointer movement is never routed through kanata. Takes effect on a kanata restart.
+  windows-interception-mouse-hwids-exclude ()
 )
 
 (defsrc
-  caps lmet
+  caps lmet mwu mwd
+  grv 2 6 7 8 9 - = [ ] \ ; ' ¥ ro
 )
 
 (defalias
@@ -21,8 +28,34 @@
   ;; Win is only sent once another key is pressed with it; a tap sends nothing.
   ;; The 10s hold time keeps a slow lone press from turning into Win (and opening Start).
   win (tap-hold-press 10000 10000 XX lmet)
+  ;; Alt is already held, so a plain a/s arrives as alt+a / alt+s. Without Alt the wheel passes
+  ;; through as one notch per event (a high-resolution wheel scrolls faster than usual).
+  wup (fork mwu a (lalt ralt))
+  wdn (fork mwd s (lalt ralt))
+
+  ;; JIS legends as US-layout keys. Shift is still held when the shifted action runs, so
+  ;; e.g. `'` there comes out as `"`; `unshift` drops it where JIS has no Shift.
+  ;; Comments: the JIS legend (unshifted shifted)
+  j2   (fork 2 ' (lsft rsft))                ;; 2 "
+  j6   (fork 6 7 (lsft rsft))                ;; 6 &
+  j7   (fork 7 (unshift ') (lsft rsft))      ;; 7 '
+  j8   (fork 8 9 (lsft rsft))                ;; 8 (
+  j9   (fork 9 0 (lsft rsft))                ;; 9 )
+  jmin (fork - (unshift =) (lsft rsft))      ;; - =
+  jcar (fork S-6 grv (lsft rsft))            ;; ^ ~
+  jat  (fork S-2 (unshift grv) (lsft rsft))  ;; @ `
+  jsem (fork ; = (lsft rsft))                ;; ; +
+  jcol (fork S-; 8 (lsft rsft))              ;; : *
+  jro  (fork \ - (lsft rsft))                ;; \ _
 )
 
 (deflayer base
-  @cap @win
+  @cap @win @wup @wdn
+  _    _   _   _   _   _   _    _    _   _ _ _     _     _ _
+)
+
+;; grv = 半角/全角 (IME toggle), ] = the [ { key, \ = the ] } key, ¥ = ¥ |
+(deflayer jis
+  @cap @win @wup @wdn
+  A-grv @j2 @j6 @j7 @j8 @j9 @jmin @jcar @jat [ ] @jsem @jcol \ @jro
 )
