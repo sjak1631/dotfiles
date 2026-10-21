@@ -122,7 +122,7 @@ Windows の配列は常に US。ノート PC では外部キーボード (USB / 
 
 | 対象 | 内容 |
 |---|---|
-| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, LibreOffice, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
+| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, LibreOffice, Claude, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
 | desktop | Little Big Mouse, Steam, HoYoPlay (winget に無いので専用スクリプト、`D:\HoYoPlay` に入れる) |
 | laptop | (なし) |
 
