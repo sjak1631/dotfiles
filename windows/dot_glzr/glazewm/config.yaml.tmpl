@@ -111,6 +111,12 @@ workspaces:
 {{- end }}
 
 window_rules:
+  # Kdenlive's window (its welcome screen first, then the editor) never appears when GlazeWM tiles
+  # it on creation; floating works (alt+t tiles it afterwards)
+  - commands: ['set-floating']
+    match:
+      - window_process: { equals: 'kdenlive' }
+
   # Zen restores its last window size/position on startup after GlazeWM has tiled it (overlapping
   # the other windows); re-apply the layout shortly after it appears
   - commands: ['shell-exec conhost.exe --headless cmd.exe /c %USERPROFILE%/.local/bin/glazewm-settle.cmd']
