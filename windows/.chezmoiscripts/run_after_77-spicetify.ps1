@@ -38,12 +38,13 @@ if ((Get-Content (spicetify -c) -Raw) -notmatch '(?m)^[ \t]*extensions[ \t]*=.*r
     if (-not $r.Ok) { throw "spicetify config extensions failed:`n$($r.Output)" }
 }
 
-# First run: back up Spotify's original files. After a Spotify update the backup is stale:
-# restore, back up the new version, apply.
+# First run: back up Spotify's original files. After a Spotify update the backup is stale and
+# `apply` refuses ("Spotify version and backup version are mismatched"): `backup` clears the old
+# backup and saves the new version's files (`restore` would put the old version's files back).
 $ini = Get-Content (spicetify -c) -Raw
 $hasBackup = $ini -match '(?m)^[ \t]*version[ \t]*=[ \t]*\S'
 $r = if ($hasBackup) { Invoke-Spicetify @('apply') } else { Invoke-Spicetify @('backup', 'apply') }
-if (-not $r.Ok -and $hasBackup) { $r = Invoke-Spicetify @('restore', 'backup', 'apply') }
+if (-not $r.Ok -and $hasBackup) { $r = Invoke-Spicetify @('backup', 'apply') }
 if (-not $r.Ok) { throw "spicetify apply failed:`n$($r.Output)" }
 
 New-Item -ItemType Directory -Force (Split-Path $stateFile) | Out-Null
