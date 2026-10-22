@@ -21,6 +21,15 @@
   grv 2 6 7 8 9 - = [ ] \ ; ' ¥ ro
 )
 
+;; A JIS key: $key unchanged with Alt/Ctrl/Win held (shortcuts such as GlazeWM's alt+shift+2
+;; keep working), $shifted with Shift held, $plain otherwise
+(deftemplate jis (key plain shifted)
+  (switch
+    ((or lalt ralt lctl rctl lmet rmet)) $key break
+    ((or lsft rsft)) $shifted break
+    () $plain break)
+)
+
 (defalias
   ;; tap-hold-press: becomes Ctrl as soon as another key is pressed (fast Ctrl+C etc.)
   imectl (tap-hold-press 200 200 A-grv lctl)
@@ -36,17 +45,17 @@
   ;; JIS legends as US-layout keys. Shift is still held when the shifted action runs, so
   ;; e.g. `'` there comes out as `"`; `unshift` drops it where JIS has no Shift.
   ;; Comments: the JIS legend (unshifted shifted)
-  j2   (fork 2 ' (lsft rsft))                ;; 2 "
-  j6   (fork 6 7 (lsft rsft))                ;; 6 &
-  j7   (fork 7 (unshift ') (lsft rsft))      ;; 7 '
-  j8   (fork 8 9 (lsft rsft))                ;; 8 (
-  j9   (fork 9 0 (lsft rsft))                ;; 9 )
-  jmin (fork - (unshift =) (lsft rsft))      ;; - =
-  jcar (fork S-6 grv (lsft rsft))            ;; ^ ~
-  jat  (fork S-2 (unshift grv) (lsft rsft))  ;; @ `
-  jsem (fork ; = (lsft rsft))                ;; ; +
-  jcol (fork S-; 8 (lsft rsft))              ;; : *
-  jro  (fork \ - (lsft rsft))                ;; \ _
+  j2   (t! jis 2 2 ')                ;; 2 "
+  j6   (t! jis 6 6 7)                ;; 6 &
+  j7   (t! jis 7 7 (unshift '))      ;; 7 '
+  j8   (t! jis 8 8 9)                ;; 8 (
+  j9   (t! jis 9 9 0)                ;; 9 )
+  jmin (t! jis - - (unshift =))      ;; - =
+  jcar (t! jis = S-6 grv)            ;; ^ ~
+  jat  (t! jis [ S-2 (unshift grv))  ;; @ `
+  jsem (t! jis ; ; =)                ;; ; +
+  jcol (t! jis ' S-; 8)              ;; : *
+  jro  (t! jis ro \ -)               ;; \ _
 )
 
 (deflayer base
