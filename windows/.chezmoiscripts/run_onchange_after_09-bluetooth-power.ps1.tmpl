@@ -1,0 +1,46 @@
+{{- if eq .machine "desktop" -}}
+$ErrorActionPreference = 'Stop'
+
+# Keep the USB Bluetooth adapter awake so BLE keyboards reconnect while the screen is locked:
+# once the adapter is suspended, a keyboard waking up can't reach it.
+# - Device Manager > adapter > Power Management: "Allow the computer to turn off this device" off
+# - Power plan > USB settings > USB selective suspend off (current plan; AC and DC)
+$usbSub = '2a737441-1930-4402-8d77-b2bebba308a3'
+$selectiveSuspend = '48e6b7a6-50f5-4782-a5d4-53bb8f07e226'
+
+$adapters = @(Get-PnpDevice -Class Bluetooth -PresentOnly | Where-Object InstanceId -match '^USB\\')
+if (-not $adapters) { Write-Host '==> skip Bluetooth power (no USB Bluetooth adapter)'; exit 0 }
+$ids = $adapters | ForEach-Object { "$($_.InstanceId)_0" }
+
+function Get-PowerOff {
+    Get-CimInstance -Namespace root/wmi -ClassName MSPower_DeviceEnable |
+        Where-Object { $ids -contains $_.InstanceName -and $_.Enable }
+}
+function Test-SelectiveSuspend {
+    $q = powercfg /q SCHEME_CURRENT $usbSub $selectiveSuspend | Out-String
+    $q -match '0x00000001'
+}
+
+if (-not (Get-PowerOff) -and -not (Test-SelectiveSuspend)) {
+    Write-Host '==> Bluetooth power: already kept awake'
+    exit 0
+}
+
+Write-Host "==> Bluetooth power: keeping $($adapters.FriendlyName -join ', ') awake (UAC prompt)"
+$idList = ($ids | ForEach-Object { "'$_'" }) -join ','
+$elevated = @"
+`$ids = @($idList)
+Get-CimInstance -Namespace root/wmi -ClassName MSPower_DeviceEnable |
+    Where-Object { `$ids -contains `$_.InstanceName -and `$_.Enable } |
+    ForEach-Object { Set-CimInstance -InputObject `$_ -Property @{ Enable = `$false } }
+powercfg /setacvalueindex SCHEME_CURRENT $usbSub $selectiveSuspend 0
+powercfg /setdcvalueindex SCHEME_CURRENT $usbSub $selectiveSuspend 0
+powercfg /setactive SCHEME_CURRENT
+"@
+$encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($elevated))
+Start-Process powershell -ArgumentList '-NoProfile', '-EncodedCommand', $encoded -Verb RunAs -Wait -WindowStyle Hidden
+
+if (Get-PowerOff) { throw 'Bluetooth adapter can still be turned off to save power' }
+if (Test-SelectiveSuspend) { throw 'USB selective suspend is still on' }
+Write-Host '==> Bluetooth power: adapter power-off and USB selective suspend disabled'
+{{- end }}
