@@ -111,6 +111,12 @@ workspaces:
 {{- end }}
 
 window_rules:
+  # Kdenlive's window (its welcome screen first, then the editor) never appears when GlazeWM tiles
+  # it on creation; floating works (alt+t tiles it afterwards)
+  - commands: ['set-floating']
+    match:
+      - window_process: { equals: 'kdenlive' }
+
   # Zen restores its last window size/position on startup after GlazeWM has tiled it (overlapping
   # the other windows); re-apply the layout shortly after it appears
   - commands: ['shell-exec conhost.exe --headless cmd.exe /c %USERPROFILE%/.local/bin/glazewm-settle.cmd']
@@ -290,3 +296,25 @@ keybindings:
     bindings: ['alt+shift+9']
   - commands: ['move --workspace 0', 'focus --workspace 0']
     bindings: ['alt+shift+0']
+
+  # Swap the focused workspace with workspace <n>, contents and layout included (ws-swap.ps1)
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 1']
+    bindings: ['alt+ctrl+1']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 2']
+    bindings: ['alt+ctrl+2']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 3']
+    bindings: ['alt+ctrl+3']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 4']
+    bindings: ['alt+ctrl+4']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 5']
+    bindings: ['alt+ctrl+5']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 6']
+    bindings: ['alt+ctrl+6']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 7']
+    bindings: ['alt+ctrl+7']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 8']
+    bindings: ['alt+ctrl+8']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 9']
+    bindings: ['alt+ctrl+9']
+  - commands: ['shell-exec conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File %USERPROFILE%/.local/bin/ws-swap.ps1 0']
+    bindings: ['alt+ctrl+0']

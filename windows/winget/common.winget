@@ -111,6 +111,30 @@ properties:
         id: TheDocumentFoundation.LibreOffice
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: claude
+      directives:
+        description: Claude (desktop app)
+        allowPrerelease: true
+      settings:
+        id: Anthropic.Claude
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: kdenlive
+      directives:
+        description: Kdenlive (video editor)
+        allowPrerelease: true
+      settings:
+        id: KDE.Kdenlive
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: obsidian
+      directives:
+        description: Obsidian (notes)
+        allowPrerelease: true
+      settings:
+        id: Obsidian.Obsidian
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: kanata
       directives:
         description: kanata (key remapper; the Interception build, see run_after_19-interception.ps1)

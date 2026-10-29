@@ -84,6 +84,7 @@ rice:
 | `Alt+Shift+H/J/K/L` | ウィンドウ移動 |
 | `Alt+1`〜`9`, `Alt+0` | ワークスペース移動 (desktop: 1〜9 はメイン、0 はサブモニター) |
 | `Alt+Shift+1`〜`9`, `0` | ウィンドウをワークスペースへ送る |
+| `Alt+Ctrl+1`〜`9`, `0` | 今のワークスペースとその番号のワークスペースを中身ごと入れ替える (相手が空なら番号の付け替え) |
 | `Alt+S` / `Alt+A` / `Alt+D` | 次 / 前 / 直前のワークスペース |
 | `Alt`+ホイール下 / 上 | 次 / 前のワークスペース (kanata が `Alt+S` / `Alt+A` に変換) |
 | 3 本指スワイプ右 / 左 | 次 / 前のワークスペース (ノート PC のタッチパッド) |
@@ -122,7 +123,7 @@ Windows の配列は常に US。ノート PC では外部キーボード (USB / 
 
 | 対象 | 内容 |
 |---|---|
-| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, LibreOffice, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
+| 共通 | Git, GitHub CLI, chezmoi, gitleaks, Zen Browser, Bitwarden, Slack, Vesktop, Spotify + Spicetify, Zoom, VS Code, LibreOffice, Claude, Kdenlive, Obsidian, kanata, GlazeWM, WezTerm, Flow Launcher, JetBrainsMono Nerd Font, yazi (+ 7zip / FFmpeg / Poppler / jq / fd / ripgrep / fzf / zoxide), fastfetch |
 | desktop | Little Big Mouse, Steam, HoYoPlay (winget に無いので専用スクリプト、`D:\HoYoPlay` に入れる) |
 | laptop | (なし) |
 

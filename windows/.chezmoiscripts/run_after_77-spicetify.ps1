@@ -39,8 +39,9 @@ if ((Get-Content (spicetify -c) -Raw) -notmatch '(?m)^[ \t]*extensions[ \t]*=.*r
 }
 
 # First run: back up Spotify's original files. After a Spotify update the backup is stale and
-# "restore" refuses to run ("version mismatched"): back up the new version, apply. Otherwise
-# restore, back up, apply.
+# `apply` refuses ("Spotify version and backup version are mismatched"): `backup` clears the old
+# backup and saves the new version's files (`restore` would put the old version's files back).
+# Any other failure: restore, back up, apply.
 $ini = Get-Content (spicetify -c) -Raw
 $hasBackup = $ini -match '(?m)^[ \t]*version[ \t]*=[ \t]*\S'
 $r = if ($hasBackup) { Invoke-Spicetify @('apply') } else { Invoke-Spicetify @('backup', 'apply') }
