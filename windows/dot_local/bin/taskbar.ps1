@@ -2,7 +2,8 @@
 #   taskbar.ps1 hide   - hide the taskbar on all monitors
 #   taskbar.ps1 show   - stop any watcher and restore the normal taskbar
 #   taskbar.ps1 watch  - hide, and keep it hidden while GlazeWM runs; once GlazeWM is gone,
-#                        restore the taskbar and exit
+#                        restore the taskbar and exit. Also restarts Zebar once the monitor
+#                        setup has settled after a change (see RestartZebar)
 #
 # Hiding = auto-hide (frees the work area) + hidden taskbar windows. A hidden auto-hide taskbar
 # does not slide back in at the screen edge. Re-sending the auto-hide state, however, makes
@@ -33,6 +34,8 @@ public static class Taskbar {
     [DllImport("user32.dll")] static extern IntPtr SetWinEventHook(uint min, uint max, IntPtr mod, WinEventProc fn, uint pid, uint tid, uint flags);
     [DllImport("user32.dll")] static extern bool UnhookWinEvent(IntPtr hook);
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    delegate bool MonitorEnumProc(IntPtr monitor, IntPtr hdc, ref RECT rect, IntPtr data);
+    [DllImport("user32.dll")] static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr clip, MonitorEnumProc fn, IntPtr data);
 
     const uint ABM_GETSTATE = 0x4, ABM_SETSTATE = 0xA;
     const int ABS_AUTOHIDE = 1, ABS_ALWAYSONTOP = 2, SW_HIDE = 0, SW_SHOW = 5;
@@ -101,12 +104,38 @@ public static class Taskbar {
         if (idObject == 0 && hwnd != IntPtr.Zero && IsTaskbar(hwnd)) ShowWindow(hwnd, SW_HIDE);
     };
 
+    // Monitor rectangles; changes when a monitor is (dis)connected, rearranged or rescaled
+    static string Displays() {
+        var sb = new StringBuilder();
+        EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (IntPtr m, IntPtr hdc, ref RECT r, IntPtr d) => {
+            sb.AppendFormat("{0},{1},{2},{3};", r.Left, r.Top, r.Right, r.Bottom);
+            return true;
+        }, IntPtr.Zero);
+        return sb.ToString();
+    }
+
+    // Zebar's bar reserves the top of its monitor (an appbar), which GlazeWM tiles around. Zebar
+    // re-creates the bar when it sees a monitor change, but it may do so before Windows has
+    // finished switching (e.g. the laptop screen becoming primary when an external monitor is
+    // unplugged), reserving space at stale coordinates and never correcting it: windows then
+    // cover the bar. A restart once things have settled re-creates it in the right place.
+    static void RestartZebar() {
+        foreach (var p in Process.GetProcessesByName("zebar")) {
+            try { p.Kill(); p.WaitForExit(3000); } catch { }
+        }
+        Thread.Sleep(1000);  // its helpers (clickwatch.ps1) exit along with it
+        string exe = Environment.ExpandEnvironmentVariables(@"%ProgramFiles%\glzr.io\Zebar\zebar.exe");
+        try { Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true }); } catch { }
+    }
+
     // Re-hides the taskbar the moment Explorer shows it, until GlazeWM exits
     public static void Watch() {
         Hide();
         uint hookedPid = 0;
         IntPtr hook = IntPtr.Zero;
 
+        string displays = Displays();
+        var displaysChangedAt = DateTime.MinValue;  // MinValue: no restart pending
         var lastCheck = DateTime.MinValue;
         while (true) {
             Application.DoEvents();  // delivers the WinEvent callbacks
@@ -129,6 +158,14 @@ public static class Taskbar {
             // Safety net (e.g. new taskbar windows after an Explorer restart)
             SetAutoHide(true);
             foreach (var w in Windows()) if (IsWindowVisible(w)) ShowWindow(w, SW_HIDE);
+
+            // Restart Zebar 6 s after the last monitor change (one restart for a burst of changes)
+            string now = Displays();
+            if (now != displays) { displays = now; displaysChangedAt = DateTime.Now; }
+            if (displaysChangedAt != DateTime.MinValue && (DateTime.Now - displaysChangedAt).TotalSeconds >= 6) {
+                displaysChangedAt = DateTime.MinValue;
+                RestartZebar();
+            }
         }
         if (hook != IntPtr.Zero) UnhookWinEvent(hook);
         Show();
