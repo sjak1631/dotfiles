@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 # WSL + NixOS-WSL, configured by this repo's nix/ flake (host "nixos-wsl").
 # Runs on every apply and only does what's needed:
 #   1. WSL itself not installed -> `wsl --install --no-distribution` (UAC; usually needs a reboot)
-#   2. no "NixOS" distro        -> import the latest NixOS-WSL release (nixos.wsl)
+#   2. no "NixOS" distro        -> import the pinned NixOS-WSL release (nixos.wsl, SHA256-checked)
 #   3. nix/ changed since the last successful rebuild -> nixos-rebuild from the local source
 #      (the first time it also switches the default user from "nixos" to the configured one)
 $hash = '{{ range list "flake.nix" "flake.lock" "configuration.nix" "home.nix" "yazi/yazi.toml" }}{{ $p := joinPath $.chezmoi.workingTree "nix" . }}{{ if stat $p }}{{ include $p | sha256sum }}{{ end }}{{ end }}'
@@ -13,6 +13,11 @@ $distro = 'NixOS'
 # can be moved with `wsl --shutdown; wsl --manage NixOS --move <folder>`
 $location = '{{ if hasKey . "wslLocation" }}{{ .wslLocation }}{{ end }}'
 $stateFile = Join-Path $env:LOCALAPPDATA 'dotfiles\nixos-wsl.hash'
+# Only the first import uses this image; after that the flake (nix/) keeps the system up to date.
+# To bump: pick a release on github.com/nix-community/NixOS-WSL/releases and copy the SHA256 from
+# its nixos.wsl.sha256 asset
+$imageVersion = '2605.7.2'
+$imageSha256 = 'E7180AD555FDCB8E1E057E2EF056DE467603A5E502FF8531053738371BE3F6B9'
 
 function Invoke-Wsl([string[]]$arguments) {
     # wsl.exe's own messages are UTF-16; read them as such so they aren't garbled
@@ -43,9 +48,13 @@ if ($distros -notcontains $distro) {
     $dir = Join-Path $env:TEMP 'nixos-wsl'
     New-Item -ItemType Directory -Force $dir | Out-Null
     $file = Join-Path $dir 'nixos.wsl'
-    Write-Host '==> downloading NixOS-WSL (latest release)'
+    Write-Host "==> downloading NixOS-WSL $imageVersion"
     $ProgressPreference = 'SilentlyContinue'  # Invoke-WebRequest is very slow with the progress bar
-    Invoke-WebRequest 'https://github.com/nix-community/NixOS-WSL/releases/latest/download/nixos.wsl' -OutFile $file -UseBasicParsing
+    Invoke-WebRequest "https://github.com/nix-community/NixOS-WSL/releases/download/$imageVersion/nixos.wsl" -OutFile $file -UseBasicParsing
+    if ((Get-FileHash $file -Algorithm SHA256).Hash -ne $imageSha256) {
+        Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+        throw "nixos.wsl ($imageVersion): unexpected SHA256"
+    }
     Write-Host '==> importing NixOS-WSL'
     $installArgs = @('--install', '--from-file', $file, '--no-launch')
     if ($location) {

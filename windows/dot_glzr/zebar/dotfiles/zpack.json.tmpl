@@ -1,4 +1,7 @@
 {{- $s := index .styles .rice.style -}}
+{{- /* Exact argument lists panel.js passes (runScript / shellSpawn), anchored so nothing else
+       (e.g. -Command) can ride along. Must match BIN in paths.js. */ -}}
+{{- $run := printf "^-NoProfile -ExecutionPolicy Bypass -File %s/\\.local/bin/" (regexQuoteMeta .chezmoi.homeDir) -}}
 {{- define "preset" -}}
         {
           "name": "{{ .name }}",
@@ -49,7 +52,9 @@
       "caching": { "defaultDuration": 604800, "rules": [] },
       "privileges": {
         "shellCommands": [
-          { "program": "powershell", "argsRegex": ".*/\\.local/bin/(power|bluetooth|clickwatch)\\.ps1.*" }
+          { "program": "powershell", "argsRegex": {{ print $run "power\\.ps1 (lock|sleep|signout|restart|shutdown)$" | toJson }} },
+          { "program": "powershell", "argsRegex": {{ print $run "bluetooth\\.ps1 (status|on|off|settings)$" | toJson }} },
+          { "program": "powershell", "argsRegex": {{ print $run "clickwatch\\.ps1$" | toJson }} }
         ]
       },
       "presets": [
