@@ -1,7 +1,8 @@
 // Flow Launcher plugin (Executable, JSON-RPC v1): pick a wallpaper from ~/Pictures/Wallpapers.
-// Compiled to Wallpaper.exe by run_onchange_after_65-flow-wallpaper.ps1 (C# 5, .NET Framework).
+// Compiled to Wallpaper.dll by run_onchange_after_65-flow-wallpaper.ps1 (C# 5, .NET Framework)
+// and run by Wallpaper.cmd -> Wallpaper.ps1 (Smart App Control blocks a locally built exe).
 //
-// Flow runs `Wallpaper.exe <request json>` and reads {"result": [...]} from stdout.
+// Flow runs `Wallpaper.cmd <request json>` and reads {"result": [...]} from stdout.
 //   query <search>  -> one result per image, with a large preview
 //   set <path>      -> landscape image: landscape monitors, portrait image: portrait monitors
 //   open <dir>      -> open the wallpaper folder

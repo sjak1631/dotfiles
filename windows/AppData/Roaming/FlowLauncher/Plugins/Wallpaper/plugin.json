@@ -8,5 +8,5 @@
   "Language": "Executable",
   "Website": "https://github.com/sjak1631/dotfiles",
   "IcoPath": "icon.png",
-  "ExecuteFileName": "Wallpaper.exe"
+  "ExecuteFileName": "Wallpaper.cmd"
 }

@@ -1,9 +1,11 @@
 {{- $t := index .themes .rice.theme -}}
 $ErrorActionPreference = 'Stop'
 
-# Builds the Flow Launcher wallpaper plugin (Wallpaper.cs -> Wallpaper.exe) and its icon.
+# Builds the Flow Launcher wallpaper plugin (Wallpaper.cs -> Wallpaper.dll, run by Wallpaper.cmd
+# -> Wallpaper.ps1) and its icon.
 # source: {{ include "AppData/Roaming/FlowLauncher/Plugins/Wallpaper/Wallpaper.cs" | sha256sum }}
 # plugin.json: {{ include "AppData/Roaming/FlowLauncher/Plugins/Wallpaper/plugin.json" | sha256sum }}
+# runner: {{ list (include "AppData/Roaming/FlowLauncher/Plugins/Wallpaper/Wallpaper.cmd") (include "AppData/Roaming/FlowLauncher/Plugins/Wallpaper/Wallpaper.ps1") | join "" | sha256sum }}
 # icon colors: {{ $t.accent }} {{ $t.bg }}
 
 $flow = Join-Path $env:LOCALAPPDATA 'FlowLauncher\Flow.Launcher.exe'
@@ -14,9 +16,11 @@ Get-Process Flow.Launcher -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep 1
 
 $src = Get-Content (Join-Path $pluginDir 'Wallpaper.cs') -Raw -Encoding UTF8
-Add-Type -TypeDefinition $src -Language CSharp -OutputType ConsoleApplication `
-    -OutputAssembly (Join-Path $pluginDir 'Wallpaper.exe') `
+Add-Type -TypeDefinition $src -Language CSharp -OutputType Library `
+    -OutputAssembly (Join-Path $pluginDir 'Wallpaper.dll') `
     -ReferencedAssemblies System.Drawing, System.Web.Extensions, System.Core
+# Built by older versions; Smart App Control blocks it
+Remove-Item (Join-Path $pluginDir 'Wallpaper.exe') -ErrorAction SilentlyContinue
 Write-Host '==> Flow wallpaper plugin built'
 
 # Icon: a mountain on a rounded square in the theme colors
