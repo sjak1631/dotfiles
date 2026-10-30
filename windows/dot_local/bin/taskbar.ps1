@@ -10,12 +10,15 @@
 # Explorer show the taskbar, so it is only sent when auto-hide is actually off.
 param([ValidateSet('hide', 'show', 'watch')][string]$Action = 'hide')
 
-Add-Type -ReferencedAssemblies System.Windows.Forms -TypeDefinition @'
+Add-Type -ReferencedAssemblies System.Windows.Forms, System.Management -TypeDefinition @'
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Management;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -104,6 +107,12 @@ public static class Taskbar {
         if (idObject == 0 && hwnd != IntPtr.Zero && IsTaskbar(hwnd)) ShowWindow(hwnd, SW_HIDE);
     };
 
+    static bool PortInUse(int port) {
+        foreach (var ep in IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners())
+            if (ep.Port == port) return true;
+        return false;
+    }
+
     // Monitor rectangles; changes when a monitor is (dis)connected, rearranged or rescaled
     static string Displays() {
         var sb = new StringBuilder();
@@ -119,11 +128,22 @@ public static class Taskbar {
     // finished switching (e.g. the laptop screen becoming primary when an external monitor is
     // unplugged), reserving space at stale coordinates and never correcting it: windows then
     // cover the bar. A restart once things have settled re-creates it in the right place.
+    // Helpers Zebar's widgets start (clickwatch/power/bluetooth.ps1) inherit its server socket
+    // (127.0.0.1:6124). One still running when the new Zebar starts keeps it from opening its
+    // server, and its widgets then show "can't reach this page": stop them and wait for the port.
     static void RestartZebar() {
         foreach (var p in Process.GetProcessesByName("zebar")) {
             try { p.Kill(); p.WaitForExit(3000); } catch { }
         }
-        Thread.Sleep(1000);  // its helpers (clickwatch.ps1) exit along with it
+        try {
+            using (var search = new ManagementObjectSearcher("SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name='powershell.exe'"))
+                foreach (ManagementObject o in search.Get()) {
+                    string cmd = o["CommandLine"] as string ?? "";
+                    if (!Regex.IsMatch(cmd, @"[\\/]\.local[\\/]bin[\\/](clickwatch|power|bluetooth)\.ps1")) continue;
+                    try { Process.GetProcessById(Convert.ToInt32(o["ProcessId"])).Kill(); } catch { }
+                }
+        } catch { }
+        for (int i = 0; i < 50 && PortInUse(6124); i++) Thread.Sleep(200);
         string exe = Environment.ExpandEnvironmentVariables(@"%ProgramFiles%\glzr.io\Zebar\zebar.exe");
         try { Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true }); } catch { }
     }
