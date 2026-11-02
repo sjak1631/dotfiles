@@ -135,6 +135,14 @@ properties:
         id: Obsidian.Obsidian
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: zotero
+      directives:
+        description: Zotero (reference manager)
+        allowPrerelease: true
+      settings:
+        id: DigitalScholar.Zotero
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: kanata
       directives:
         description: kanata (key remapper; the Interception build, see run_after_19-interception.ps1)
