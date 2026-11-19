@@ -1,0 +1,18 @@
+{{- if eq .machine "laptop" -}}
+$ErrorActionPreference = 'Stop'
+
+# Closing the lid does nothing (AC and DC), so the XREAL glasses / an external monitor keep
+# running with the lid shut. Windows just turns the internal panel off and moves everything to
+# the remaining display. Sleep explicitly (Start > Power, or power.ps1 sleep) before bagging it.
+$buttonsSub = '4f971e89-eebd-4455-a8de-9e59040e7347'
+$lidAction = '5ca83367-6e45-459f-a27b-476b1d01c936'
+
+powercfg /setacvalueindex SCHEME_CURRENT $buttonsSub $lidAction 0
+powercfg /setdcvalueindex SCHEME_CURRENT $buttonsSub $lidAction 0
+powercfg /setactive SCHEME_CURRENT
+
+# /qh: LIDACTION is a hidden setting on this machine, so plain /q prints nothing
+$q = powercfg /qh SCHEME_CURRENT $buttonsSub $lidAction | Out-String
+if (($q | Select-String '0x0000000[0-3]' -AllMatches).Matches.Value -ne '0x00000000') { throw 'Lid action is still not "Do nothing"' }
+Write-Host '==> Lid close: do nothing (AC and DC)'
+{{- end }}
