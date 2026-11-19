@@ -2,8 +2,9 @@
 #   taskbar.ps1 hide   - hide the taskbar on all monitors
 #   taskbar.ps1 show   - stop any watcher and restore the normal taskbar
 #   taskbar.ps1 watch  - hide, and keep it hidden while GlazeWM runs; once GlazeWM is gone,
-#                        restore the taskbar and exit. Also restarts Zebar once the monitor
-#                        setup has settled after a change (see RestartZebar)
+#                        restore the taskbar and exit. Also restarts Zebar and re-applies the
+#                        wallpaper once the monitor setup has settled after a change
+#                        (see RestartZebar, ApplyWallpaper)
 #
 # Hiding = auto-hide (frees the work area) + hidden taskbar windows. A hidden auto-hide taskbar
 # does not slide back in at the screen edge. Re-sending the auto-hide state, however, makes
@@ -148,6 +149,18 @@ public static class Taskbar {
         try { Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true }); } catch { }
     }
 
+    // Wallpapers are per monitor, and wallpaper.ps1 only sets the monitors attached when it runs:
+    // a monitor seen for the first time (e.g. the XREAL glasses) gets Windows' default (Spotlight).
+    // Re-applying the current selection covers it, and picks portrait/landscape after a rotation.
+    static void ApplyWallpaper() {
+        string script = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\.local\bin\wallpaper.ps1");
+        try {
+            Process.Start(new ProcessStartInfo("powershell.exe",
+                "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"" + script + "\" apply") {
+                UseShellExecute = false, CreateNoWindow = true });
+        } catch { }
+    }
+
     // Re-hides the taskbar the moment Explorer shows it, until GlazeWM exits
     public static void Watch() {
         Hide();
@@ -179,12 +192,14 @@ public static class Taskbar {
             SetAutoHide(true);
             foreach (var w in Windows()) if (IsWindowVisible(w)) ShowWindow(w, SW_HIDE);
 
-            // Restart Zebar 6 s after the last monitor change (one restart for a burst of changes)
+            // Restart Zebar and re-apply the wallpaper 6 s after the last monitor change (once for
+            // a burst of changes)
             string now = Displays();
             if (now != displays) { displays = now; displaysChangedAt = DateTime.Now; }
             if (displaysChangedAt != DateTime.MinValue && (DateTime.Now - displaysChangedAt).TotalSeconds >= 6) {
                 displaysChangedAt = DateTime.MinValue;
                 RestartZebar();
+                ApplyWallpaper();
             }
         }
         if (hook != IntPtr.Zero) UnhookWinEvent(hook);
