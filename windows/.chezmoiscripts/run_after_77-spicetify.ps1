@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 # Spotify theming with Spicetify: the "Rice" theme (AppData/Roaming/spicetify/Themes/Rice,
 # generated from rice.yaml) and the rice-start.js extension. Runs on every apply but only patches Spotify when the theme, Spotify
-# or Spicetify changed: Spotify's auto-updates undo the patch, and the next apply redoes it.
+# or Spicetify changed. Spotify's self-updates would undo the patch, so they are blocked (below).
 # Doesn't restart Spotify; a running Spotify picks the theme up on its next start.
 
 $spotify = Join-Path $env:APPDATA 'Spotify\Spotify.exe'
@@ -50,6 +50,18 @@ if (-not $r.Ok -and $hasBackup) {
     $r = Invoke-Spicetify $retry
 }
 if (-not $r.Ok) { throw "spicetify apply failed:`n$($r.Output)" }
+
+# Stop Spotify's self-updates: each one silently replaces xpui.spa and drops the theme until the
+# next apply. Spotify then updates only through winget (`winget upgrade Spotify.Spotify`), and the
+# next apply sees the new version and re-patches (a new Spotify.exe also needs re-blocking).
+# Patching Spotify.exe fails while Spotify runs: skip, and leave the state hash unwritten so the
+# next apply tries again.
+if (Get-Process Spotify -ErrorAction SilentlyContinue) {
+    Write-Host '==> Spicetify: theme applied; Spotify is running, so its self-updates are not blocked yet (close it and apply again)'
+    exit 0
+}
+$r = Invoke-Spicetify @('spotify-updates', 'block')
+if (-not $r.Ok) { throw "spicetify spotify-updates block failed:`n$($r.Output)" }
 
 New-Item -ItemType Directory -Force (Split-Path $stateFile) | Out-Null
 Set-Content $stateFile $hash -Encoding ascii
